@@ -7,6 +7,6 @@ class Tile(x: Int,y: Int) {
     var y_coord: Int = y
     var isEmpty: Boolean = false
     var chessPiece: ChessPiece? = null
-    var tileName: String = (('A'.code +  x_coord).toChar()).toString() + (y_coord+1).toString()
+    var tileName: String = (('a'.code +  x_coord).toChar()).toString() + (y_coord+1).toString()
 
 }

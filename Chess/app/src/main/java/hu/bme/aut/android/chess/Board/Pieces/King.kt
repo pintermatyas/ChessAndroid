@@ -26,6 +26,6 @@ class King(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         }
         val x_new = tile.x_coord
         val y_new = tile.y_coord
-        return abs(x_new - pos_x)==1 || abs(y_new - pos_y)==1
+        return abs(x_new - pos_x)<=1 && abs(y_new - pos_y)<=1
     }
 }

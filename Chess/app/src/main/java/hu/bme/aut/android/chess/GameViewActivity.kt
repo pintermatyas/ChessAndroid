@@ -14,23 +14,96 @@ class GameViewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGameViewBinding
     var board = Board()
     var buttons =  ArrayList<ImageButton>()
+    var selectedPiece: ChessPiece? = null
+    var selectedTile: Tile? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGameViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setUniversalClickListener()
+        setUpButtons()
+
+        for(b in buttons){
+            b.setOnClickListener {
+                onTileClick(it)
+            }
+        }
+        drawBoard()
+
     }
 
     fun onTileClick(view: View){
         val tileId = view.contentDescription.toString()
         var tile = board.searchForTileById(tileId)
         var piece = tile?.chessPiece
-        Toast.makeText(this, tileId.toString() + ":" + piece?.javaClass , Toast.LENGTH_SHORT).show()
+        if(selectedPiece!=null){
+            if(tile?.let { selectedPiece!!.checkIfValidMove(it) } == true){
+                selectedTile?.let { board.step(selectedPiece!!, it, tile) }
+                selectedPiece!!.step(tile)
+                findButtonFromTile(tile!!)?.setImageResource(getImageFromChessPiece(selectedPiece!!))
+                findButtonFromTile(selectedTile!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+                return
+            }
+        }
+        selectedTile = tile
+        piece?.pos_x = tile?.x_coord!!
+        piece?.pos_y = tile?.y_coord!!
+        selectedPiece = piece
+
+
+        drawBoard()
+        highlightTile(view)
+
+        if(piece != null){
+            for(b in buttons){
+                val tempTileId = b.contentDescription.toString()
+                var tempTile = board.searchForTileById(tempTileId)
+                if(tempTile != null){
+                    if(piece.checkIfValidMove(tempTile)){
+                        findButtonFromTile(tempTile)?.let { highlightTile(it) }
+                    }
+                }
+            }
+        }
+
     }
 
-    fun setUniversalClickListener(){
+    fun highlightTile(view: View){
+        val tileId = view.contentDescription.toString()
+        var tile = board.searchForTileById(tileId)
+        if(tile!=null){
+            if(tile.x_coord % 2 == 0){
+                if(tile.y_coord % 2 == 0){
+                    view.setBackgroundResource(R.drawable.tile_brown_dark)
+                }
+                else{
+                    view.setBackgroundResource(R.drawable.tile_brown_light)
+                }
+            }
+            else{
+                if(tile.y_coord % 2 == 0){
+                    view.setBackgroundResource(R.drawable.tile_brown_light)
+                }
+                else{
+                    view.setBackgroundResource(R.drawable.tile_brown_dark)
+                }
+            }
+        }
+    }
+
+    fun findButtonFromTile(tile: Tile): ImageButton? {
+        for(b in buttons){
+            val tileId = b.contentDescription.toString()
+            var tempTile = board.searchForTileById(tileId)
+            if(tempTile?.x_coord == tile.x_coord && tempTile.y_coord == tile.y_coord){
+                return b
+            }
+        }
+        return null
+    }
+
+    fun setUpButtons(){
         buttons.add(binding.a1)
         buttons.add(binding.a2)
         buttons.add(binding.a3)
@@ -102,21 +175,37 @@ class GameViewActivity : AppCompatActivity() {
         buttons.add(binding.h6)
         buttons.add(binding.h7)
         buttons.add(binding.h8)
-
-        for(b in buttons){
-            val piece = board.searchForTileById(b.contentDescription.toString())?.chessPiece
-            if(piece!=null){
-                b.setImageResource(getImageFromChessPiece(piece))
-            }
-
-            b.setOnClickListener {
-                onTileClick(it)
-            }
-        }
-
     }
 
     fun drawBoard(){
+        for(b in buttons){
+            val piece = board.searchForTileById(b.contentDescription.toString())?.chessPiece
+            val tileId = b.contentDescription.toString()
+            var tile = board.searchForTileById(tileId)
+
+            if(piece?.pos_x == tile?.x_coord && piece?.pos_y == tile?.y_coord){
+                piece?.let { getImageFromChessPiece(it) }?.let { b.setImageResource(it) }
+            }
+
+            if(tile!=null){
+                if(tile.x_coord % 2 == 0){
+                    if(tile.y_coord % 2 == 0){
+                        b.setBackgroundResource(R.drawable.tile_beige_dark)
+                    }
+                    else{
+                        b.setBackgroundResource(R.drawable.tile_beige_light)
+                    }
+                }
+                else{
+                    if(tile.y_coord % 2 == 0){
+                        b.setBackgroundResource(R.drawable.tile_beige_light)
+                    }
+                    else{
+                        b.setBackgroundResource(R.drawable.tile_beige_dark)
+                    }
+                }
+            }
+        }
     }
 
     fun getImageFromChessPiece(piece: ChessPiece): Int {

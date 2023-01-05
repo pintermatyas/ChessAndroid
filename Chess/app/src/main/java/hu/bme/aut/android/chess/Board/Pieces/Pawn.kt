@@ -29,24 +29,22 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         val x_new = tile.x_coord
         val y_new = tile.y_coord
         if(!tile.isEmpty){
-            if(abs(x_new - pos_x)==1){
-                return when (firstPos) {
-                    1 -> {
-                        y_new == pos_y+1
-                    }
-                    6 -> {
-                        y_new == pos_y-1
-                    }
-                    else -> false
+            return when (firstPos) {
+                1 -> {
+                    y_new == pos_y+1 && abs(x_new - pos_x)==1
                 }
+                6 -> {
+                    y_new == pos_y-1 && abs(x_new - pos_x)==1
+                }
+                else -> false
             }
         }
         return when (firstPos) {
             1 -> {
-                y_new == pos_y+1
+                y_new == pos_y+1 && x_new == pos_x
             }
             6 -> {
-                y_new == pos_y-1
+                y_new == pos_y-1 && x_new == pos_x
             }
             else -> false
         }

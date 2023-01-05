@@ -76,6 +76,17 @@ class Board() {
         return null
     }
 
+    fun step(piece: ChessPiece, from: Tile, to: Tile){
+        if(piece.checkIfValidMove(to)){
+            from.chessPiece = null
+            if(!to.isEmpty){
+                to.chessPiece?.isAlive = false
+            }
+            to.chessPiece = piece
+            piece.step(to)
+        }
+    }
+
     fun drawBoard(){
 
     }

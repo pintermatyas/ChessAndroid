@@ -24,7 +24,7 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     }
 
     override fun checkIfValidMove(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player){
+        if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
         val x_new = tile.x_coord
@@ -46,5 +46,16 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
 
     override fun isPathBlockedToTile(tile: Tile, board: Board): Boolean {
         return checkIfValidMove(tile, board)
+    }
+
+    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+            return false
+        }
+        val x_new = tile.x_coord
+        val y_new = tile.y_coord
+        val dx = abs(pos_x - x_new)
+        val dy = abs(pos_y - y_new)
+        return ((dx==2 && dy==1) || (dx==1 && dy == 2)) && tile.chessPiece is King
     }
 }

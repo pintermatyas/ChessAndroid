@@ -22,4 +22,6 @@ abstract class ChessPiece(x: Int, y: Int, playerId: Int) {
     abstract fun copy(): ChessPiece
 
     abstract fun isPathBlockedToTile(tile: Tile, board: Board): Boolean
+
+    abstract fun isAttackingKingOn(tile: Tile, board: Board): Boolean
 }

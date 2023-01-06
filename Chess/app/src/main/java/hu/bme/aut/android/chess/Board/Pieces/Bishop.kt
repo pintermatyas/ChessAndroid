@@ -23,7 +23,7 @@ class Bishop(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     }
 
     override fun checkIfValidMove(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player){
+        if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
         val x_new = tile.x_coord
@@ -89,5 +89,18 @@ class Bishop(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
             }
         }
         return blocked
+    }
+
+    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+            return false
+        }
+        val x_new = tile.x_coord
+        val y_new = tile.y_coord
+
+        if(!isPathBlockedToTile(tile, board) && tile.chessPiece is King){
+            return abs(pos_x - x_new) == abs(pos_y - y_new)
+        }
+        else return false
     }
 }

@@ -14,13 +14,13 @@ import kotlin.math.abs
 class GameViewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGameViewBinding
     var board = Board()
-    var buttons =  ArrayList<ImageButton>()
-    var previouslySelectedPiece: ChessPiece? = null
-    var previouslySelectedTile: Tile? = null
-    var nextPlayer: Int = 0
-    var previousBoard = Board()
-    var init = true
-    var revertable = false
+    private var buttons =  ArrayList<ImageButton>()
+    private var previouslySelectedPiece: ChessPiece? = null
+    private var previouslySelectedTile: Tile? = null
+    private var nextPlayer: Int = 0
+    private var previousBoard = Board()
+    private var init = true
+    private var revertable = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +44,7 @@ class GameViewActivity : AppCompatActivity() {
 
     }
 
-    fun revert(){
+    private fun revert(){
         if(revertable){
             for(i in 0..63){
                 board.tiles[i] = previousBoard.tiles[i]?.copy()
@@ -61,10 +61,15 @@ class GameViewActivity : AppCompatActivity() {
         revertable = false
     }
 
-    fun onTileClick(view: View){
+    private fun onTileClick(view: View){
+
+        if(checkForCheck()){
+            //TODO Only allow steps that prevents further checks
+        }
+
         val tileId = view.contentDescription.toString()
-        var currentTile = board.searchForTileById(tileId)
-        var currentPiece = currentTile?.chessPiece
+        val currentTile = board.searchForTileById(tileId)
+        val currentPiece = currentTile?.chessPiece
         var castle = false
         if(previouslySelectedPiece == null && currentPiece?.player == nextPlayer){
             previouslySelectedPiece = currentPiece
@@ -78,6 +83,7 @@ class GameViewActivity : AppCompatActivity() {
 //                Toast.makeText(this, "selected piece is not next player", Toast.LENGTH_SHORT).show()
                 previouslySelectedPiece = currentPiece
                 previouslySelectedTile = currentTile
+                checkForCheck()
                 return
             }
 
@@ -168,17 +174,19 @@ class GameViewActivity : AppCompatActivity() {
 
             step = false
             previouslySelectedPiece = null
+            checkForCheck()
             return
         }
 
         drawBoard()
         highlightTile(view)
+        checkForCheck()
 
         if(currentPiece != null){
             if(currentPiece.player == nextPlayer){
                 for(b in buttons){
                     val tempTileId = b.contentDescription.toString()
-                    var tempTile = board.searchForTileById(tempTileId)
+                    val tempTile = board.searchForTileById(tempTileId)
                     if(tempTile != null){
                         if(currentPiece.checkIfValidMove(tempTile,board)){
                             findButtonFromTile(tempTile)?.let { highlightTile(it) }
@@ -190,19 +198,39 @@ class GameViewActivity : AppCompatActivity() {
 
     }
 
-    fun checkForAttack(tile: Tile): Boolean{
+    fun checkForKingAttack(tile: Tile): Boolean{
         var attacked = false
+
+        if(tile.chessPiece !is King) return false
+
         for(t in board.tiles){
-            if(t?.chessPiece!!.checkIfValidMove(tile,board)){
-                attacked = true
+            val piece = t?.chessPiece
+            if(piece != null){
+                //If the selected piece is attacking the enemy King
+                if(piece.isAttackingKingOn(tile,board)){
+                    attacked = true
+                }
             }
         }
         return attacked
     }
 
+    fun checkForCheck(): Boolean{
+        for(t in board.tiles){
+            val piece = t?.chessPiece
+            if(piece is King && checkForKingAttack(t)){
+                highlightTileForCheck(findButtonFromTile(t)!!)
+                val playerstring = if(piece.player == 1)  "white"  else "black"
+                Snackbar.make(binding.root, "CHECK for $playerstring", Snackbar.LENGTH_SHORT).show()
+                return true
+            }
+        }
+        return false
+    }
+
     fun highlightTile(view: View){
         val tileId = view.contentDescription.toString()
-        var tile = board.searchForTileById(tileId)
+        val tile = board.searchForTileById(tileId)
         if(tile!=null){
             if(tile.x_coord % 2 == 0){
                 if(tile.y_coord % 2 == 0){
@@ -223,10 +251,33 @@ class GameViewActivity : AppCompatActivity() {
         }
     }
 
+    fun highlightTileForCheck(view: View){
+        val tileId = view.contentDescription.toString()
+        val tile = board.searchForTileById(tileId)
+        if(tile!=null){
+            if(tile.x_coord % 2 == 0){
+                if(tile.y_coord % 2 == 0){
+                    view.setBackgroundResource(R.drawable.tile_gray_dark)
+                }
+                else{
+                    view.setBackgroundResource(R.drawable.tile_grey_light)
+                }
+            }
+            else{
+                if(tile.y_coord % 2 == 0){
+                    view.setBackgroundResource(R.drawable.tile_grey_light)
+                }
+                else{
+                    view.setBackgroundResource(R.drawable.tile_gray_dark)
+                }
+            }
+        }
+    }
+
     fun findButtonFromTile(tile: Tile): ImageButton? {
         for(b in buttons){
             val tileId = b.contentDescription.toString()
-            var tempTile = board.searchForTileById(tileId)
+            val tempTile = board.searchForTileById(tileId)
             if(tempTile?.x_coord == tile.x_coord && tempTile.y_coord == tile.y_coord){
                 return b
             }
@@ -312,7 +363,7 @@ class GameViewActivity : AppCompatActivity() {
         for(b in buttons){
             val piece = board.searchForTileById(b.contentDescription.toString())?.chessPiece
             val tileId = b.contentDescription.toString()
-            var tile = board.searchForTileById(tileId)
+            val tile = board.searchForTileById(tileId)
 
             if(piece?.pos_x == tile?.x_coord && piece?.pos_y == tile?.y_coord){
                 piece?.let { getImageFromChessPiece(it) }?.let { b.setImageResource(it) }

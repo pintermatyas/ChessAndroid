@@ -23,7 +23,7 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     }
 
     override fun checkIfValidMove(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player){
+        if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
         val x_new = tile.x_coord
@@ -73,5 +73,37 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
 
     override fun isPathBlockedToTile(tile: Tile, board: Board): Boolean {
         return checkIfValidMove(tile, board)
+    }
+
+    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+            return false
+        }
+        val x_new = tile.x_coord
+        val y_new = tile.y_coord
+        val isKing = tile.chessPiece is King
+        if(pos_y == first_pos_y){
+            return when (first_pos_y) {
+                1 -> {
+                    ((y_new == pos_y+1 && abs(x_new - pos_x)==1) && !tile.isEmpty) && isKing
+                }
+                6 -> {
+                    ((y_new == pos_y-1 && abs(x_new - pos_x)==1) && !tile.isEmpty) && isKing
+                }
+                else -> false
+            }
+        }
+        if(!tile.isEmpty){
+            return when (first_pos_y) {
+                1 -> {
+                    y_new == pos_y+1 && abs(x_new - pos_x)==1 && isKing
+                }
+                6 -> {
+                    y_new == pos_y-1 && abs(x_new - pos_x)==1 && isKing
+                }
+                else -> false
+            }
+        }
+        return false
     }
 }

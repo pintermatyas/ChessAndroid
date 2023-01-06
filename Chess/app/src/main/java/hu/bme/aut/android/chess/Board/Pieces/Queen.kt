@@ -23,7 +23,7 @@ class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
     }
 
     override fun checkIfValidMove(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player){
+        if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
         val x_new = tile.x_coord
@@ -127,5 +127,17 @@ class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
             }
         }
         return blocked
+    }
+
+    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+            return false
+        }
+        val x_new = tile.x_coord
+        val y_new = tile.y_coord
+        if(!isPathBlockedToTile(tile, board)){
+            return (x_new==pos_x || y_new == pos_y || abs(pos_x - x_new) == abs(pos_y - y_new)) && tile.chessPiece is King
+        }
+        else return false
     }
 }

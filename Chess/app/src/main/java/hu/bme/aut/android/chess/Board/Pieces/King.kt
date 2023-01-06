@@ -83,4 +83,8 @@ class King(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     override fun isPathBlockedToTile(tile: Tile, board: Board): Boolean {
         return checkIfValidMove(tile, board)
     }
+
+    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
+        return false
+    }
 }

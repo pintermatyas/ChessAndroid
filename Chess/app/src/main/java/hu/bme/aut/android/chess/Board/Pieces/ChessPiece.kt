@@ -1,18 +1,25 @@
 package hu.bme.aut.android.chess.Board.Pieces
 
+import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Tile
 
 abstract class ChessPiece(x: Int, y: Int, playerId: Int) {
     var pos_x: Int = x
     var pos_y: Int = y
+    var first_pos_x: Int = x
+    var first_pos_y: Int = y
     var isAlive: Boolean = true
     val player: Int = playerId
     open var canPathBeBlocked: Boolean = true
     var imagePath: String = ""
 
-    open abstract fun getPossibleMoves()
+    abstract fun getPossibleMoves()
 
-    open abstract fun step(tile: Tile)
+    abstract fun step(tile: Tile?, board: Board)
 
-    open abstract fun checkIfValidMove(tile: Tile): Boolean
+    abstract fun checkIfValidMove(tile: Tile, board: Board): Boolean
+
+    abstract fun copy(): ChessPiece
+
+    abstract fun isPathBlockedToTile(tile: Tile, board: Board): Boolean
 }

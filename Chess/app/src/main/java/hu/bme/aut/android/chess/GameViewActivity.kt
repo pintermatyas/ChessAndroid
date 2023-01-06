@@ -3,19 +3,24 @@ package hu.bme.aut.android.chess
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import hu.bme.aut.android.chess.Board.*
 import hu.bme.aut.android.chess.Board.Pieces.*
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
+import kotlin.math.abs
 
 
 class GameViewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGameViewBinding
     var board = Board()
     var buttons =  ArrayList<ImageButton>()
-    var selectedPiece: ChessPiece? = null
-    var selectedTile: Tile? = null
+    var previouslySelectedPiece: ChessPiece? = null
+    var previouslySelectedTile: Tile? = null
+    var nextPlayer: Int = 0
+    var previousBoard = Board()
+    var init = true
+    var revertable = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,44 +34,170 @@ class GameViewActivity : AppCompatActivity() {
                 onTileClick(it)
             }
         }
-        drawBoard()
+        binding.fabBack.setOnClickListener {
+            revert()
+        }
 
+
+        drawBoard()
+        alterPlayer()
+
+    }
+
+    fun revert(){
+        if(revertable){
+            for(i in 0..63){
+                board.tiles[i] = previousBoard.tiles[i]?.copy()
+                if(previousBoard.tiles[i] == null){
+                    board.tiles[i] = null
+                }
+            }
+            alterPlayer()
+            drawBoard()
+        }
+        else {
+            Snackbar.make(binding.root, "Not available!", Snackbar.ANIMATION_MODE_SLIDE).show()
+        }
+        revertable = false
     }
 
     fun onTileClick(view: View){
         val tileId = view.contentDescription.toString()
-        var tile = board.searchForTileById(tileId)
-        var piece = tile?.chessPiece
-        if(selectedPiece!=null){
-            if(tile?.let { selectedPiece!!.checkIfValidMove(it) } == true){
-                selectedTile?.let { board.step(selectedPiece!!, it, tile) }
-                selectedPiece!!.step(tile)
-                findButtonFromTile(tile!!)?.setImageResource(getImageFromChessPiece(selectedPiece!!))
-                findButtonFromTile(selectedTile!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+        var currentTile = board.searchForTileById(tileId)
+        var currentPiece = currentTile?.chessPiece
+        var castle = false
+        if(previouslySelectedPiece == null && currentPiece?.player == nextPlayer){
+            previouslySelectedPiece = currentPiece
+        }
+        var step = false
+        var prevTile: Tile? = null
+
+        if(previouslySelectedPiece!=null){
+//            Toast.makeText(this, "selected piece is not null", Toast.LENGTH_SHORT).show()
+            if(currentPiece?.player != nextPlayer && currentPiece != null && previouslySelectedPiece!!.player != nextPlayer){
+//                Toast.makeText(this, "selected piece is not next player", Toast.LENGTH_SHORT).show()
+                previouslySelectedPiece = currentPiece
+                previouslySelectedTile = currentTile
                 return
             }
-        }
-        selectedTile = tile
-        piece?.pos_x = tile?.x_coord!!
-        piece?.pos_y = tile?.y_coord!!
-        selectedPiece = piece
 
+            //Step
+            if(previouslySelectedPiece?.player == nextPlayer){
+                if(currentTile?.let { previouslySelectedPiece!!.checkIfValidMove(it,board) } == true){
+                    for(i in 0..63){
+                        previousBoard.tiles[i] = board.tiles[i]?.copy()
+                        if(board.tiles[i] == null){
+                            previousBoard.tiles[i] = null
+                        }
+                    }
+                    revertable = true
+//                    previousBoard.tiles = board.tiles.clone()
+                    previouslySelectedTile?.let {
+                        board.step(it, currentTile)
+                        it.chessPiece = null
+                        currentTile.chessPiece = previouslySelectedPiece
+                    }
+                    previouslySelectedPiece!!.step(currentTile,board)
+                    findButtonFromTile(currentTile)?.setImageResource(getImageFromChessPiece(previouslySelectedPiece!!))
+                    findButtonFromTile(previouslySelectedTile!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+                    prevTile = previouslySelectedTile
+                    step = true
+                    if(previouslySelectedPiece is King && abs(prevTile!!.x_coord - currentTile.x_coord) > 1){
+                        castle = true
+                    }
+                    previouslySelectedPiece = null
+//                    Toast.makeText(this, "step valid", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        //DEBUG
+        else{
+//            Toast.makeText(this, "selected piece is null", Toast.LENGTH_SHORT).show()
+        }
+        previouslySelectedTile = currentTile
+        previouslySelectedPiece?.pos_x = currentTile?.x_coord!!
+        previouslySelectedPiece?.pos_y = currentTile.y_coord
+        previouslySelectedPiece = currentPiece
+
+        if(step) {
+            if(castle){
+                Snackbar.make(binding.root, "CASTLE PLAYER ${nextPlayer}", Snackbar.ANIMATION_MODE_SLIDE).show()
+                if(currentTile.tileName == "c1"){
+                    board.tiles[0]?.chessPiece = null
+                    board.tiles[0]?.isEmpty = true
+                    findButtonFromTile(board.tiles[0]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+                    board.tiles[3] = Tile(3,0)
+                    board.tiles[3]?.chessPiece = Rook(3,0,0)
+                    board.tiles[3]?.isEmpty = false
+                }
+                else if(currentTile.tileName == "g1"){
+                    board.tiles[7]?.chessPiece = null
+                    board.tiles[7]?.isEmpty = true
+                    findButtonFromTile(board.tiles[7]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+                    board.tiles[5] = Tile(5,0)
+                    board.tiles[5]?.chessPiece = Rook(5,0,0)
+                    board.tiles[5]?.isEmpty = false
+                }
+                else if(currentTile.tileName == "c8"){
+                    board.tiles[56]?.chessPiece = null
+                    board.tiles[56]?.isEmpty = true
+                    findButtonFromTile(board.tiles[56]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+                    board.tiles[59] = Tile(3,7)
+                    board.tiles[59]?.chessPiece = Rook(3,7,1)
+                    board.tiles[59]?.isEmpty = false
+                }
+                else if(currentTile.tileName == "g8"){
+                    board.tiles[63]?.chessPiece = null
+                    board.tiles[63]?.isEmpty = true
+                    findButtonFromTile(board.tiles[63]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+                    board.tiles[61] = Tile(5,7)
+                    board.tiles[61]?.chessPiece = Rook(5,7,1)
+                    board.tiles[61]?.isEmpty = false
+                }
+            }
+
+            drawBoard()
+            highlightTile(view)
+            if (prevTile != null) {
+                findButtonFromTile(prevTile)?.let { highlightTile(it) }
+            }
+            board.tiles[prevTile!!.x_coord + prevTile.y_coord*8]?.isEmpty = true
+            board.tiles[currentTile.x_coord + currentTile.y_coord*8]?.isEmpty = false
+
+            alterPlayer()
+
+            step = false
+            previouslySelectedPiece = null
+            return
+        }
 
         drawBoard()
         highlightTile(view)
 
-        if(piece != null){
-            for(b in buttons){
-                val tempTileId = b.contentDescription.toString()
-                var tempTile = board.searchForTileById(tempTileId)
-                if(tempTile != null){
-                    if(piece.checkIfValidMove(tempTile)){
-                        findButtonFromTile(tempTile)?.let { highlightTile(it) }
+        if(currentPiece != null){
+            if(currentPiece.player == nextPlayer){
+                for(b in buttons){
+                    val tempTileId = b.contentDescription.toString()
+                    var tempTile = board.searchForTileById(tempTileId)
+                    if(tempTile != null){
+                        if(currentPiece.checkIfValidMove(tempTile,board)){
+                            findButtonFromTile(tempTile)?.let { highlightTile(it) }
+                        }
                     }
                 }
             }
         }
 
+    }
+
+    fun checkForAttack(tile: Tile): Boolean{
+        var attacked = false
+        for(t in board.tiles){
+            if(t?.chessPiece!!.checkIfValidMove(tile,board)){
+                attacked = true
+            }
+        }
+        return attacked
     }
 
     fun highlightTile(view: View){
@@ -186,6 +317,9 @@ class GameViewActivity : AppCompatActivity() {
             if(piece?.pos_x == tile?.x_coord && piece?.pos_y == tile?.y_coord){
                 piece?.let { getImageFromChessPiece(it) }?.let { b.setImageResource(it) }
             }
+            if(piece == null){
+                b.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
+            }
 
             if(tile!=null){
                 if(tile.x_coord % 2 == 0){
@@ -260,4 +394,27 @@ class GameViewActivity : AppCompatActivity() {
         return com.google.android.material.R.drawable.navigation_empty_icon
     }
 
+    fun alterPlayer(){
+        if(!init){
+            if(nextPlayer == 1){
+                binding.player1indicator.text = ""
+                binding.player2indicator.text = "YOUR ROUND!"
+                nextPlayer = 0
+            }
+            else if(nextPlayer == 0){
+                binding.player1indicator.text = "YOUR ROUND!"
+                binding.player2indicator.text = ""
+                nextPlayer = 1
+            }
+        }
+        if(nextPlayer == 1) {
+            binding.player1indicator.text = ""
+            binding.player2indicator.text = "YOUR ROUND!"
+        }
+        else if(nextPlayer == 0) {
+            binding.player1indicator.text = "YOUR ROUND!"
+            binding.player2indicator.text = ""
+        }
+        init = false
+    }
 }

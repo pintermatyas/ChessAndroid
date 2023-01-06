@@ -76,14 +76,21 @@ class Board() {
         return null
     }
 
-    fun step(piece: ChessPiece, from: Tile, to: Tile){
-        if(piece.checkIfValidMove(to)){
-            from.chessPiece = null
-            if(!to.isEmpty){
-                to.chessPiece?.isAlive = false
+    fun step(from: Tile, to: Tile){
+        val piece = from.chessPiece
+        if(piece != null){
+            if(piece.isPathBlockedToTile(to,this)){
+                tiles[from.x_coord + from.y_coord*8]?.chessPiece = null
+                tiles[from.x_coord + from.y_coord*8]?.isEmpty = true
+                if(!to.isEmpty){
+                    tiles[to.x_coord + to.y_coord*8]?.chessPiece?.isAlive = false
+                }
+                tiles[to.x_coord + to.y_coord*8]?.chessPiece = piece
+                tiles[to.x_coord + to.y_coord*8]?.isEmpty = false
+                piece.step(tiles[to.x_coord + to.y_coord*8],this)
+                piece.pos_x = tiles[to.x_coord + to.y_coord*8]?.x_coord!!
+                piece.pos_y = tiles[to.x_coord + to.y_coord*8]?.y_coord!!
             }
-            to.chessPiece = piece
-            piece.step(to)
         }
     }
 

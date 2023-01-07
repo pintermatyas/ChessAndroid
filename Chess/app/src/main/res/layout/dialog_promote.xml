@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/promotetext1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="You just promoted your pawn!"
+            android:gravity="center"
+            android:textAlignment="center"
+            tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/promotetext2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose the promoted piece!"
+            android:textStyle="italic"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@+id/promotetext1"
+            android:textAlignment="center"/>
+
+        <ImageButton
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintWidth_percent="0.25"
+            android:id="@+id/promote_queen"
+            android:src="@drawable/queen_white"
+            app:layout_constraintTop_toBottomOf="@+id/promotetext2"
+            style="?android:attr/borderlessButtonStyle"
+            tools:ignore="MissingConstraints" />
+        <TextView
+            android:id="@+id/tv_queenpromote"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Queen"
+            android:textAlignment="center"
+            app:layout_constraintTop_toBottomOf="@+id/promote_queen"
+            app:layout_constraintWidth_percent="0.25"
+            tools:ignore="MissingConstraints" />
+
+        <ImageButton
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintWidth_percent="0.25"
+            android:id="@+id/promote_rook"
+            android:src="@drawable/rook_white"
+            app:layout_constraintStart_toEndOf="@+id/promote_queen"
+            app:layout_constraintTop_toBottomOf="@+id/promotetext2"
+            style="?android:attr/borderlessButtonStyle"
+            tools:ignore="MissingConstraints" />
+        <TextView
+            android:id="@+id/tv_rookpromote"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Rook"
+            app:layout_constraintStart_toEndOf="@+id/tv_queenpromote"
+            app:layout_constraintTop_toBottomOf="@+id/promote_rook"
+            android:textAlignment="center"
+            app:layout_constraintWidth_percent="0.25"
+            tools:ignore="MissingConstraints" />
+
+        <ImageButton
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintWidth_percent="0.25"
+            android:id="@+id/promote_knight"
+            android:src="@drawable/knight_white"
+            app:layout_constraintStart_toEndOf="@+id/promote_rook"
+            app:layout_constraintTop_toBottomOf="@+id/promotetext2"
+            style="?android:attr/borderlessButtonStyle"
+            tools:ignore="MissingConstraints" />
+        <TextView
+            android:id="@+id/tv_knightpromote"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Knight"
+            app:layout_constraintStart_toEndOf="@+id/tv_rookpromote"
+            app:layout_constraintTop_toBottomOf="@+id/promote_knight"
+            android:textAlignment="center"
+            app:layout_constraintWidth_percent="0.25"
+            tools:ignore="MissingConstraints" />
+
+        <ImageButton
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintWidth_percent="0.25"
+            android:id="@+id/promote_bishop"
+            android:src="@drawable/bishop_white"
+            app:layout_constraintStart_toEndOf="@+id/promote_knight"
+            app:layout_constraintTop_toBottomOf="@+id/promotetext2"
+            style="?android:attr/borderlessButtonStyle"
+            tools:ignore="MissingConstraints" />
+        <TextView
+            android:id="@+id/tv_bishoppromote"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Bishop"
+            app:layout_constraintStart_toEndOf="@+id/tv_knightpromote"
+            app:layout_constraintTop_toBottomOf="@+id/promote_bishop"
+            android:textAlignment="center"
+            app:layout_constraintWidth_percent="0.25"
+            tools:ignore="MissingConstraints" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>

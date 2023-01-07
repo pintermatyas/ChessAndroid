@@ -5,7 +5,7 @@ import hu.bme.aut.android.chess.Board.Pieces.*
 class Board() {
     var tiles =  initBoard()
 
-    fun initBoard(): Array<Tile?> {
+    private fun initBoard(): Array<Tile?> {
         var tileInit: Array<Tile?> = Array(64){null}
         for(i in 0..63){
             val x = i%8
@@ -92,6 +92,8 @@ class Board() {
                 piece.pos_y = tiles[to.x_coord + to.y_coord*8]?.y_coord!!
             }
         }
+
+
     }
 
     fun drawBoard(){

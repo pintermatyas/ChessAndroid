@@ -12,12 +12,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.startbtn.setOnClickListener {
             val intent = Intent(this@MainActivity, GameViewActivity::class.java).apply {  }
+            startActivity(intent)
+        }
+        binding.settingsbtn.setOnClickListener {
+            val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {  }
             startActivity(intent)
         }
     }

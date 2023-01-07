@@ -82,17 +82,6 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         val x_new = tile.x_coord
         val y_new = tile.y_coord
         val isKing = tile.chessPiece is King
-        if(pos_y == first_pos_y){
-            return when (first_pos_y) {
-                1 -> {
-                    ((y_new == pos_y+1 && abs(x_new - pos_x)==1) && !tile.isEmpty) && isKing
-                }
-                6 -> {
-                    ((y_new == pos_y-1 && abs(x_new - pos_x)==1) && !tile.isEmpty) && isKing
-                }
-                else -> false
-            }
-        }
         if(!tile.isEmpty){
             return when (first_pos_y) {
                 1 -> {
@@ -103,6 +92,16 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
                 }
                 else -> false
             }
+        }
+        return false
+    }
+
+    fun checkForTradebility(): Boolean{
+        if(first_pos_y == 1){
+            return pos_y == 7
+        }
+        if(first_pos_y == 6){
+            return pos_y == 0
         }
         return false
     }

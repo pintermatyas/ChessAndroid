@@ -766,8 +766,18 @@
             android:layout_alignParentBottom="true"
             android:src="@drawable/ic_back_white"
             android:contentDescription="@string/previous_step"
+            android:backgroundTint="@color/lime"
             android:layout_margin="16dp"
             tools:ignore="TooManyViews" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/resetbtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:background="@drawable/rounded_button"
+            android:text="@string/reset_board" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/settingsbtn"
@@ -775,7 +785,7 @@
             android:layout_height="80dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:background="@drawable/rounded_button"
+            android:backgroundTint="@color/lime"
             android:contentDescription="@string/settings"
             android:src="@drawable/ic_settings"
             android:text="@string/settings"

@@ -4,10 +4,9 @@
     android:layout_height="fill_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:background="@drawable/xd"
     tools:context=".MainActivity">
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/startbtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,8 +21,8 @@
         android:layout_height="80dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/rounded_button"
         android:contentDescription="@string/settings"
+        android:backgroundTint="@color/lime"
         android:src="@drawable/ic_settings"
         android:text="@string/settings"
         android:layout_margin="16dp"/>

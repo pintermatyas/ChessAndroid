@@ -31,10 +31,10 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(pos_y == first_pos_y){
             return when (first_pos_y) {
                 1 -> {
-                    ((y_new == pos_y+2 || y_new == pos_y+1) && x_new == pos_x) || ((y_new == pos_y+1 && abs(x_new - pos_x)==1) && !tile.isEmpty)
+                    (y_new == pos_y+2 && x_new == pos_x && board.tiles[pos_x + (pos_y + 1) * 8]!!.isEmpty) || (y_new == pos_y+1 && x_new == pos_x && board.tiles[pos_x + (pos_y + 1) * 8]!!.isEmpty) || ((y_new == pos_y+1 && abs(x_new - pos_x)==1) && !tile.isEmpty)
                 }
                 6 -> {
-                    ((y_new == pos_y-2 || y_new == pos_y-1) && x_new == pos_x) || ((y_new == pos_y-1 && abs(x_new - pos_x)==1) && !tile.isEmpty)
+                    (y_new == pos_y-2 && x_new == pos_x && board.tiles[pos_x + (pos_y - 1) * 8]!!.isEmpty) || (y_new == pos_y-1 && x_new == pos_x && board.tiles[pos_x + (pos_y - 1) * 8]!!.isEmpty) || ((y_new == pos_y-1 && abs(x_new - pos_x)==1) && !tile.isEmpty)
                 }
                 else -> false
             }

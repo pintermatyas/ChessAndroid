@@ -12,6 +12,7 @@ abstract class ChessPiece(x: Int, y: Int, playerId: Int) {
     val player: Int = playerId
     open var canPathBeBlocked: Boolean = true
     var imagePath: String = ""
+    var stepCount = 0
 
     abstract fun getPossibleMoves()
 

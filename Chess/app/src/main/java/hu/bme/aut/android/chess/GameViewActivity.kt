@@ -46,6 +46,9 @@ class GameViewActivity : AppCompatActivity() {
         binding.fabBack.setOnClickListener {
             revert()
         }
+        binding.resetbtn.setOnClickListener {
+            reset()
+        }
 
 
         drawBoard()
@@ -175,17 +178,15 @@ class GameViewActivity : AppCompatActivity() {
                         board.tiles[61]?.isEmpty = false
                     }
                 }
-            }
-
-            else if(promote){
+            } else if(promote){
                 latestPromote = prevPiece
                 lastStep = currentPlayer
                 val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-                if(prefs.getBoolean("autoqueenpromotion", true)){
-                    promote(1)
-                }
+                val autoQueenPromotion = prefs.getBoolean("autoqueenpromotion", true)
 
-                else{
+                if(autoQueenPromotion){
+                    promote(1)
+                } else{
                     val factory = LayoutInflater.from(this)
                     val promotionDialogView: View = factory.inflate(R.layout.dialog_promote, null)
                     val promoteDialog: android.app.AlertDialog? = android.app.AlertDialog.Builder(this).create()
@@ -305,16 +306,15 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     private fun checkForCheck(): Boolean{
+        var check = false
         for(t in board.tiles){
             val piece = t?.chessPiece
             if(piece is King && checkForKingAttack(t)){
                 highlightTileForCheck(findButtonFromTile(t)!!)
-                val playerString = if(piece.player == 1)  "white"  else "black"
-                Snackbar.make(binding.root, "CHECK for $playerString", Snackbar.LENGTH_SHORT).show()
-                return true
+                check = true
             }
         }
-        return false
+        return check
     }
 
     private fun highlightTile(view: View){
@@ -568,5 +568,19 @@ class GameViewActivity : AppCompatActivity() {
             binding.root.setBackgroundResource(R.color.white)
         }
         init = false
+    }
+
+    private fun reset(){
+        board = Board()
+        previouslySelectedPiece = null
+        previouslySelectedTile = null
+        currentPlayer = 0
+        previousBoard = Board()
+        init = true
+        reversible = false
+        latestPromote = null
+        lastStep = 0
+        changeNextPlayer()
+        drawBoard()
     }
 }

@@ -88,23 +88,19 @@ class GameViewActivity : AppCompatActivity() {
         val currentPiece = currentTile?.chessPiece
         var castling = false
         var promote = false
-        if(previouslySelectedPiece == null && currentPiece?.player == currentPlayer){
-            previouslySelectedPiece = currentPiece
-        }
         var step = false
         var prevTile: Tile? = null
 
-
+        if(previouslySelectedPiece == null && currentPiece?.player == currentPlayer){
+            previouslySelectedPiece = currentPiece
+        }
         if(previouslySelectedPiece!=null){
-
             if(currentPiece?.player != currentPlayer && currentPiece != null && previouslySelectedPiece!!.player != currentPlayer){
                 previouslySelectedPiece = currentPiece
                 previouslySelectedTile = currentTile
                 checkForCheck(board, false)
                 return
             }
-
-
             //Step
             if(previouslySelectedPiece?.player == currentPlayer){
                 if(currentTile?.let { previouslySelectedPiece!!.checkIfValidMove(it,board) } == true){

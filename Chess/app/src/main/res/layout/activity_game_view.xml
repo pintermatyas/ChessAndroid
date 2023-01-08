@@ -764,18 +764,23 @@
             android:layout_height="80dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentBottom="true"
-            android:src="@drawable/ic_back_white"
-            android:contentDescription="@string/previous_step"
-            android:backgroundTint="@color/lime"
             android:layout_margin="16dp"
+            android:backgroundTint="@color/lime"
+            android:contentDescription="@string/previous_step"
+            android:src="@drawable/ic_back_white"
             tools:ignore="TooManyViews" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/resetbtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_centerInParent="true"
-            android:layout_gravity="center"
+            android:textColor="@color/black"
+            android:layout_margin="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/rounded_button"
             android:text="@string/reset_board" />
 
@@ -785,11 +790,14 @@
             android:layout_height="80dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:backgroundTint="@color/lime"
             android:contentDescription="@string/settings"
             android:src="@drawable/ic_settings"
-            android:text="@string/settings"
-            android:layout_margin="16dp" />
+            android:text="@string/settings" />
 
     </RelativeLayout>
 

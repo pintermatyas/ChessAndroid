@@ -2,11 +2,11 @@ package hu.bme.aut.android.chess.Board
 
 import hu.bme.aut.android.chess.Board.Pieces.*
 
-class Board() {
+class Board {
     var tiles =  initBoard()
 
     private fun initBoard(): Array<Tile?> {
-        var tileInit: Array<Tile?> = Array(64){null}
+        val tileInit: Array<Tile?> = Array(64){null}
         for(i in 0..63){
             val x = i%8
             val y = i/8
@@ -88,15 +88,19 @@ class Board() {
                 tiles[to.x_coord + to.y_coord*8]?.chessPiece = piece
                 tiles[to.x_coord + to.y_coord*8]?.isEmpty = false
                 piece.step(tiles[to.x_coord + to.y_coord*8],this)
-                piece.pos_x = tiles[to.x_coord + to.y_coord*8]?.x_coord!!
-                piece.pos_y = tiles[to.x_coord + to.y_coord*8]?.y_coord!!
+                piece.posX = tiles[to.x_coord + to.y_coord*8]?.x_coord!!
+                piece.posY = tiles[to.x_coord + to.y_coord*8]?.y_coord!!
             }
         }
 
 
     }
 
-    fun drawBoard(){
-
+    fun copy(): Board{
+        val newBoard = Board()
+        for((idx, _) in tiles.withIndex()){
+            newBoard.tiles[idx] = this.tiles[idx]?.copy()
+        }
+        return newBoard
     }
 }

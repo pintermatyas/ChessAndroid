@@ -6,15 +6,14 @@ import kotlin.math.abs
 
 class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     override var canPathBeBlocked = false
-    override fun getPossibleMoves() {
-        TODO("Not yet implemented")
-    }
+    override var stepCount = 0
 
     override fun step(tile: Tile?, board: Board) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
-                pos_x = tile.x_coord
-                pos_y = tile.y_coord
+                stepCount++
+                posX = tile.x_coord
+                posY = tile.y_coord
                 if(tile.isEmpty){
                     tile.isEmpty = false
                 } else tile.chessPiece?.isAlive = false
@@ -26,48 +25,48 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
-        val x_new = tile.x_coord
-        val y_new = tile.y_coord
-        if(pos_y == first_pos_y){
-            return when (first_pos_y) {
+        val xNew = tile.x_coord
+        val yNew = tile.y_coord
+        if(posY == firstPosY){
+            return when (firstPosY) {
                 1 -> {
-                    (y_new == pos_y+2 && x_new == pos_x && board.tiles[pos_x + (pos_y + 1) * 8]!!.isEmpty) || (y_new == pos_y+1 && x_new == pos_x && board.tiles[pos_x + (pos_y + 1) * 8]!!.isEmpty) || ((y_new == pos_y+1 && abs(x_new - pos_x)==1) && !tile.isEmpty)
+                    (yNew == posY+2 && xNew == posX && board.tiles[posX + (posY + 1) * 8]!!.isEmpty && board.tiles[posX + (posY + 2) * 8]!!.isEmpty) || (yNew == posY+1 && xNew == posX && board.tiles[posX + (posY + 1) * 8]!!.isEmpty) || ((yNew == posY+1 && abs(xNew - posX)==1) && !tile.isEmpty)
                 }
                 6 -> {
-                    (y_new == pos_y-2 && x_new == pos_x && board.tiles[pos_x + (pos_y - 1) * 8]!!.isEmpty) || (y_new == pos_y-1 && x_new == pos_x && board.tiles[pos_x + (pos_y - 1) * 8]!!.isEmpty) || ((y_new == pos_y-1 && abs(x_new - pos_x)==1) && !tile.isEmpty)
+                    (yNew == posY-2 && xNew == posX && board.tiles[posX + (posY - 1) * 8]!!.isEmpty && board.tiles[posX + (posY - 2) * 8]!!.isEmpty) || (yNew == posY-1 && xNew == posX && board.tiles[posX + (posY - 1) * 8]!!.isEmpty) || ((yNew == posY-1 && abs(xNew - posX)==1) && !tile.isEmpty)
                 }
                 else -> false
             }
         }
         if(!tile.isEmpty){
-            return when (first_pos_y) {
+            return when (firstPosY) {
                 1 -> {
-                    y_new == pos_y+1 && abs(x_new - pos_x)==1
+                    yNew == posY+1 && abs(xNew - posX)==1
                 }
                 6 -> {
-                    y_new == pos_y-1 && abs(x_new - pos_x)==1
+                    yNew == posY-1 && abs(xNew - posX)==1
                 }
                 else -> false
             }
         }
-        return when (first_pos_y) {
+        return when (firstPosY) {
             1 -> {
-                y_new == pos_y+1 && x_new == pos_x
+                yNew == posY+1 && xNew == posX
             }
             6 -> {
-                y_new == pos_y-1 && x_new == pos_x
+                yNew == posY-1 && xNew == posX
             }
             else -> false
         }
     }
 
     override fun copy(): ChessPiece {
-        var p = Pawn(pos_x, pos_y, player)
+        val p = Pawn(posX, posY, player)
         p.imagePath = imagePath
         p.isAlive = isAlive
         p.canPathBeBlocked = canPathBeBlocked
-        p.first_pos_x = first_pos_x
-        p.first_pos_y = first_pos_y
+        p.firstPosX = firstPosX
+        p.firstPosY = firstPosY
         return p
     }
 
@@ -75,33 +74,29 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         return checkIfValidMove(tile, board)
     }
 
-    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+    override fun isAttackingTile(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player){
             return false
         }
-        val x_new = tile.x_coord
-        val y_new = tile.y_coord
-        val isKing = tile.chessPiece is King
-        if(!tile.isEmpty){
-            return when (first_pos_y) {
-                1 -> {
-                    y_new == pos_y+1 && abs(x_new - pos_x)==1 && isKing
-                }
-                6 -> {
-                    y_new == pos_y-1 && abs(x_new - pos_x)==1 && isKing
-                }
-                else -> false
+        val xNew = tile.x_coord
+        val yNew = tile.y_coord
+        return when (firstPosY) {
+            1 -> {
+                yNew == posY+1 && abs(xNew - posX)==1
             }
+            6 -> {
+                yNew == posY-1 && abs(xNew - posX)==1
+            }
+            else -> false
         }
-        return false
     }
 
-    fun checkForTradebility(): Boolean{
-        if(first_pos_y == 1){
-            return pos_y == 7
+    fun checkForTradeability(): Boolean{
+        if(firstPosY == 1){
+            return posY == 7
         }
-        if(first_pos_y == 6){
-            return pos_y == 0
+        if(firstPosY == 6){
+            return posY == 0
         }
         return false
     }

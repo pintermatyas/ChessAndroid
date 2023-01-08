@@ -3,7 +3,6 @@ package hu.bme.aut.android.chess
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import hu.bme.aut.android.chess.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {

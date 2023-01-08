@@ -5,16 +5,14 @@ import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
 
 class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
-
-    override fun getPossibleMoves() {
-        TODO("Not yet implemented")
-    }
+    override var stepCount = 0
 
     override fun step(tile: Tile?, board: Board) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
-                pos_x = tile.x_coord
-                pos_y = tile.y_coord
+                stepCount++
+                posX = tile.x_coord
+                posY = tile.y_coord
                 if(tile.isEmpty){
                     tile.isEmpty = false
                 } else tile.chessPiece?.isAlive = false
@@ -26,21 +24,20 @@ class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
-        val x_new = tile.x_coord
-        val y_new = tile.y_coord
-        if(!isPathBlockedToTile(tile, board)){
-            return x_new==pos_x || y_new == pos_y || abs(pos_x - x_new) == abs(pos_y - y_new)
-        }
-        else return false
+        val xNew = tile.x_coord
+        val yNew = tile.y_coord
+        return if(!isPathBlockedToTile(tile, board)){
+            xNew==posX || yNew == posY || abs(posX - xNew) == abs(posY - yNew)
+        } else false
     }
 
     override fun copy(): ChessPiece {
-        var q = Queen(pos_x, pos_y, player)
+        val q = Queen(posX, posY, player)
         q.imagePath = imagePath
         q.isAlive = isAlive
         q.canPathBeBlocked = canPathBeBlocked
-        q.first_pos_x = first_pos_x
-        q.first_pos_y = first_pos_y
+        q.firstPosX = firstPosX
+        q.firstPosY = firstPosY
         return q
     }
 
@@ -48,78 +45,78 @@ class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
     override fun isPathBlockedToTile(tile: Tile, board: Board): Boolean {
         var blocked = false
         //Vertical
-        if(tile.y_coord == pos_y){
-            val xdiff = abs(tile.x_coord - pos_x)
-            val pos = tile.x_coord - pos_x>0
+        if(tile.y_coord == posY){
+            val xDiff = abs(tile.x_coord - posX)
+            val pos = tile.x_coord - posX>0
             if(pos){
-                for(i in 1..xdiff-1){
-                    if(!board.tiles[(pos_x + i) + pos_y * 8]?.isEmpty!!){
+                for(i in 1 until xDiff){
+                    if(!board.tiles[(posX + i) + posY * 8]?.isEmpty!!){
                         blocked = true
                     }
                 }
             }
             else if(!pos){
-                for(i in 1..xdiff-1){
-                    if(!board.tiles[(pos_x - i) + pos_y * 8]?.isEmpty!!){
+                for(i in 1 until xDiff){
+                    if(!board.tiles[(posX - i) + posY * 8]?.isEmpty!!){
                         blocked = true
                     }
                 }
             }
         }
         //Horizontal
-        else if(tile.x_coord == pos_x){
-            val ydiff = abs(tile.y_coord - pos_y)
-            val pos = tile.y_coord - pos_y>0
+        else if(tile.x_coord == posX){
+            val yDiff = abs(tile.y_coord - posY)
+            val pos = tile.y_coord - posY>0
             if(pos){
-                for(i in 1..ydiff-1){
-                    if(!board.tiles[pos_x + (pos_y+i) * 8]?.isEmpty!!){
+                for(i in 1 until yDiff){
+                    if(!board.tiles[posX + (posY+i) * 8]?.isEmpty!!){
                         blocked = true
                     }
                 }
             }
             else if(!pos){
-                for(i in 1..ydiff-1){
-                    if(!board.tiles[pos_x + (pos_y-i) * 8]?.isEmpty!!){
+                for(i in 1 until yDiff){
+                    if(!board.tiles[posX + (posY-i) * 8]?.isEmpty!!){
                         blocked = true
                     }
                 }
             }
         }
         //Diagonal
-        else if(abs(tile.x_coord - pos_x) == abs(tile.y_coord - pos_y)){
+        else if(abs(tile.x_coord - posX) == abs(tile.y_coord - posY)){
             //Diagonal up
-            if((tile.x_coord - pos_x) == (tile.y_coord - pos_y)){
-                val diff = abs(tile.x_coord - pos_x)
-                val pos = (tile.y_coord - pos_y > 0)
+            if((tile.x_coord - posX) == (tile.y_coord - posY)){
+                val diff = abs(tile.x_coord - posX)
+                val pos = (tile.y_coord - posY > 0)
                 if(pos){
-                    for(i in 1..diff-1){
-                        if(!board.tiles[(pos_x + i) + (pos_y + i)*8]?.isEmpty!!){
+                    for(i in 1 until diff){
+                        if(!board.tiles[(posX + i) + (posY + i)*8]?.isEmpty!!){
                             blocked = true
                         }
                     }
                 }
                 else if(!pos){
-                    for(i in 1..diff-1){
-                        if(!board.tiles[(pos_x - i) + (pos_y - i)*8]?.isEmpty!!){
+                    for(i in 1 until diff){
+                        if(!board.tiles[(posX - i) + (posY - i)*8]?.isEmpty!!){
                             blocked = true
                         }
                     }
                 }
             }
             //Diagonal down
-            else if((tile.x_coord - pos_x) == -(tile.y_coord - pos_y)){
-                val diff = abs(tile.x_coord - pos_x)
-                val pos = (tile.y_coord - pos_y > 0)
+            else if((tile.x_coord - posX) == -(tile.y_coord - posY)){
+                val diff = abs(tile.x_coord - posX)
+                val pos = (tile.y_coord - posY > 0)
                 if(pos){
-                    for(i in 1..diff-1){
-                        if(!board.tiles[(pos_x - i) + (pos_y + i)*8]?.isEmpty!!){
+                    for(i in 1 until diff){
+                        if(!board.tiles[(posX - i) + (posY + i)*8]?.isEmpty!!){
                             blocked = true
                         }
                     }
                 }
                 else if(!pos){
-                    for(i in 1..diff-1){
-                        if(!board.tiles[(pos_x + i) + (pos_y - i)*8]?.isEmpty!!){
+                    for(i in 1 until diff){
+                        if(!board.tiles[(posX + i) + (posY - i)*8]?.isEmpty!!){
                             blocked = true
                         }
                     }
@@ -129,15 +126,14 @@ class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
         return blocked
     }
 
-    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+    override fun isAttackingTile(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player){
             return false
         }
-        val x_new = tile.x_coord
-        val y_new = tile.y_coord
-        if(!isPathBlockedToTile(tile, board)){
-            return (x_new==pos_x || y_new == pos_y || abs(pos_x - x_new) == abs(pos_y - y_new)) && tile.chessPiece is King
-        }
-        else return false
+        val xNew = tile.x_coord
+        val yNew = tile.y_coord
+        return if(!isPathBlockedToTile(tile, board)){
+            (xNew==posX || yNew == posY || abs(posX - xNew) == abs(posY - yNew))
+        } else false
     }
 }

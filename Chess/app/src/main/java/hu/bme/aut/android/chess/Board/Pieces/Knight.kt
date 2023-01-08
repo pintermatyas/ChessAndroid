@@ -5,17 +5,15 @@ import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
 
 class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
+    override var stepCount = 0
     override var canPathBeBlocked = false
-
-    override fun getPossibleMoves() {
-        TODO("Not yet implemented")
-    }
 
     override fun step(tile: Tile?, board: Board) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
-                pos_x = tile.x_coord
-                pos_y = tile.y_coord
+                stepCount++
+                posX = tile.x_coord
+                posY = tile.y_coord
                 if(tile.isEmpty){
                     tile.isEmpty = false
                 } else tile.chessPiece?.isAlive = false
@@ -27,20 +25,20 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
-        val x_new = tile.x_coord
-        val y_new = tile.y_coord
-        val dx = abs(pos_x - x_new)
-        val dy = abs(pos_y - y_new)
+        val xNew = tile.x_coord
+        val yNew = tile.y_coord
+        val dx = abs(posX - xNew)
+        val dy = abs(posY - yNew)
         return (dx==2 && dy==1) || (dx==1 && dy == 2)
     }
 
     override fun copy(): ChessPiece {
-        var k = Knight(pos_x, pos_y, player)
+        val k = Knight(posX, posY, player)
         k.imagePath = imagePath
         k.isAlive = isAlive
         k.canPathBeBlocked = canPathBeBlocked
-        k.first_pos_x = first_pos_x
-        k.first_pos_y = first_pos_y
+        k.firstPosX = firstPosX
+        k.firstPosY = firstPosY
         return k
     }
 
@@ -48,14 +46,14 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         return checkIfValidMove(tile, board)
     }
 
-    override fun isAttackingKingOn(tile: Tile, board: Board): Boolean {
-        if(tile.chessPiece?.player == this.player || tile.chessPiece !is King){
+    override fun isAttackingTile(tile: Tile, board: Board): Boolean {
+        if(tile.chessPiece?.player == this.player){
             return false
         }
-        val x_new = tile.x_coord
-        val y_new = tile.y_coord
-        val dx = abs(pos_x - x_new)
-        val dy = abs(pos_y - y_new)
-        return ((dx==2 && dy==1) || (dx==1 && dy == 2)) && tile.chessPiece is King
+        val xNew = tile.x_coord
+        val yNew = tile.y_coord
+        val dx = abs(posX - xNew)
+        val dy = abs(posY - yNew)
+        return ((dx==2 && dy==1) || (dx==1 && dy == 2))
     }
 }

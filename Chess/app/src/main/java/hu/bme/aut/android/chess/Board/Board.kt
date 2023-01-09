@@ -96,6 +96,102 @@ class Board {
 
     }
 
+    fun checkForKingAttack(tile: Tile): Boolean{
+        var attacked = false
+
+        if(tile.chessPiece !is King) return false
+
+        for(t in this.tiles){
+            val piece = t?.chessPiece
+            if(piece != null){
+                //If the selected piece is attacking the enemy King
+                if(piece.isAttackingTile(tile,this) && piece.player != (tile.chessPiece as King).player){
+                    attacked = true
+                }
+            }
+        }
+        return attacked
+    }
+
+    fun checkForAttack(tile: Tile): Int{
+        var white = false
+        var black = false
+        for(t in this.tiles){
+            val piece = t?.chessPiece
+            if(piece != null){
+                //If the selected piece is attacking the tile
+                if(piece.isAttackingTile(tile,this)){
+                    if(piece.player == 0){
+                        white = true
+                    }
+                    else if(piece.player == 1){
+                        black = true
+                    }
+                }
+            }
+        }
+        return if(white && black) 2
+        else if(!white && black) 1
+        else if(white && !black) 0
+        else -1
+    }
+
+    fun promotePawnTo(id: Int, tile: Tile?, player: Int){
+        var piece: ChessPiece? = null
+        //Queen
+        when (id) {
+            1 -> {
+                piece = Queen(tile!!.x_coord, tile.y_coord, player)
+            }
+            //Rook
+            2 -> {
+                piece = Rook(tile!!.x_coord, tile.y_coord, player)
+            }
+            //Bishop
+            3 -> {
+                piece = Bishop(tile!!.x_coord, tile.y_coord, player)
+            }
+            //Knight
+            4 -> {
+                piece = Knight(tile!!.x_coord, tile.y_coord, player)
+            }
+        }
+        tiles[tile!!.x_coord + tile.y_coord*8]?.chessPiece = piece
+    }
+
+    fun manageCastling(tileOfKing: Tile){
+        when (tileOfKing.tileName) {
+            "c1" -> {
+                tiles[0]?.chessPiece = null
+                tiles[0]?.isEmpty = true
+                tiles[3] = Tile(3,0)
+                tiles[3]?.chessPiece = Rook(3,0,0)
+                tiles[3]?.isEmpty = false
+            }
+            "g1" -> {
+                tiles[7]?.chessPiece = null
+                tiles[7]?.isEmpty = true
+                tiles[5] = Tile(5,0)
+                tiles[5]?.chessPiece = Rook(5,0,0)
+                tiles[5]?.isEmpty = false
+            }
+            "c8" -> {
+                tiles[56]?.chessPiece = null
+                tiles[56]?.isEmpty = true
+                tiles[59] = Tile(3,7)
+                tiles[59]?.chessPiece = Rook(3,7,1)
+                tiles[59]?.isEmpty = false
+            }
+            "g8" -> {
+                tiles[63]?.chessPiece = null
+                tiles[63]?.isEmpty = true
+                tiles[61] = Tile(5,7)
+                tiles[61]?.chessPiece = Rook(5,7,1)
+                tiles[61]?.isEmpty = false
+            }
+        }
+    }
+
     fun copy(): Board{
         val newBoard = Board()
         for((idx, _) in tiles.withIndex()){

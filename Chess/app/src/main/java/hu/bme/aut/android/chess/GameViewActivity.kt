@@ -1,38 +1,62 @@
 package hu.bme.aut.android.chess
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
-import hu.bme.aut.android.chess.Board.*
+import com.google.firebase.database.*
+import com.google.firebase.ktx.Firebase
+import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Pieces.*
+import hu.bme.aut.android.chess.Board.Tile
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
+import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.abs
 
 
 class GameViewActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGameViewBinding
-    var board = Board()
-
-    private var backup = ArrayList<Board>()
+    private lateinit var board: Board
 
     private var buttons =  ArrayList<ImageButton>()
+    private var buttonNames = ArrayList<String>()
+    private var backup = ArrayList<Board>()
+    private var steps = ArrayList<String>()
+
+
     private var previouslySelectedPiece: ChessPiece? = null
     private var previouslySelectedTile: Tile? = null
     private var currentPlayer: Int = 0
     private var previousBoard = Board()
-    private var init = true
-    private var reversible = false
-    private var latestPromote: ChessPiece? = null
-    private var lastStep: Int = 0
+    private var firstRound = true
+    private var latestPromote: ChessPiece? = null //Latest promoted chess piece
+    private var lastStep: Int = 0 //Player with the latest step
+    private var aiLevel = 0 //0: disabled
+    private lateinit var prefs: SharedPreferences
 
-    private var debug = false
+    private var multiplayer = true
+
+    //firebase
+    private lateinit var database: FirebaseDatabase
+    private lateinit var message: DatabaseReference
+    private var username: String = ""
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,37 +64,48 @@ class GameViewActivity : AppCompatActivity() {
         setContentView(binding.root)
         supportActionBar?.hide()
 
-        if(debug) board = debugCheckmate()
+        if(multiplayer){
+            binding.fabBack.isVisible = false
+        }
+
+        board = Board()
+        prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        multiplayer = prefs.getBoolean("multiplayer", true)
+
+
+        database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+        message = database.reference
+        username = prefs.getString("username", "").toString()
+
+        message.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                runOnUiThread {
+                    val map = dataSnapshot.value as Map<String, *>?
+                    val sortedMap = map?.toSortedMap(compareBy<String?>{it})
+                    val values = listOf(sortedMap?.values?.last())
+                    if(values.last().toString().contains(username)){
+                        interpretMessage(values.last().toString())
+                    }
+                    toast(values.last().toString())
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+        })
+
+
+//        getDate(getTime())
+        message.child(SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS").format(Calendar.getInstance().time)).setValue(username + " entered")
+
+
 
         setUpButtons()
 
-        for(b in buttons){
-            b.setOnClickListener {
-                onTileClick(it)
-            }
-        }
-        binding.fabBack.setOnClickListener {
-            revert()
-        }
-        binding.resetbtn.setOnClickListener {
-            resetBoard()
-        }
-
-
         drawBoard()
         changeNextPlayer()
 
-    }
-
-    private fun revert(){
-        val size = backup.size
-        if(size == 0){
-            Snackbar.make(binding.root, "Not available!", Snackbar.ANIMATION_MODE_SLIDE).show()
-            return
-        }
-        board = backup.removeAt(size-1).copy()
-        changeNextPlayer()
-        drawBoard()
     }
 
     @SuppressLint("PrivateResource")
@@ -128,7 +163,8 @@ class GameViewActivity : AppCompatActivity() {
                             }
                         }
                         backup.add(previousBoard.copy())
-                        reversible = true
+                        steps.add(previouslySelectedPiece?.shortenedName +  previouslySelectedTile?.tileName + currentTile.tileName)
+//                        Toast.makeText(this, steps.last(), Toast.LENGTH_SHORT).show()
                         previouslySelectedTile?.let {
                             board.step(it, currentTile)
                             it.chessPiece = null
@@ -173,11 +209,15 @@ class GameViewActivity : AppCompatActivity() {
             }
             board.tiles[prevTile!!.x_coord + prevTile.y_coord*8]?.isEmpty = true
             board.tiles[currentTile.x_coord + currentTile.y_coord*8]?.isEmpty = false
+            var sent = false
+            if(multiplayer){
+                sent = sendBoard()
+            }
             changeNextPlayer()
             previouslySelectedPiece = null
             checkForCheck(board, false)
             checkForCheckMate(board)
-            return
+            if(!multiplayer || (multiplayer && sent)) return
         }
 
         drawBoard()
@@ -195,7 +235,7 @@ class GameViewActivity : AppCompatActivity() {
                         if(currentPiece.checkIfValidMove(tempTile,board)){
                             val opponentCode = if(currentPlayer==0) 1 else 0
                             if(currentPiece is King){
-                                if(!mutableListOf(2, opponentCode).contains(checkForAttack(tempTile, board))){
+                                if(!mutableListOf(2, opponentCode).contains(board.checkForAttack(tempTile))){
                                     findButtonFromTile(tempTile)?.let { highlightTile(it) }
                                 }
                             }
@@ -212,53 +252,19 @@ class GameViewActivity : AppCompatActivity() {
 
     @SuppressLint("PrivateResource")
     private fun manageCastling(currentTile: Tile){
-        Snackbar.make(binding.root, "CASTLE PLAYER $currentPlayer", Snackbar.ANIMATION_MODE_SLIDE).show()
-        when (currentTile.tileName) {
-            "c1" -> {
-                board.tiles[0]?.chessPiece = null
-                board.tiles[0]?.isEmpty = true
-                findButtonFromTile(board.tiles[0]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
-                board.tiles[3] = Tile(3,0)
-                board.tiles[3]?.chessPiece = Rook(3,0,0)
-                board.tiles[3]?.isEmpty = false
-            }
-            "g1" -> {
-                board.tiles[7]?.chessPiece = null
-                board.tiles[7]?.isEmpty = true
-                findButtonFromTile(board.tiles[7]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
-                board.tiles[5] = Tile(5,0)
-                board.tiles[5]?.chessPiece = Rook(5,0,0)
-                board.tiles[5]?.isEmpty = false
-            }
-            "c8" -> {
-                board.tiles[56]?.chessPiece = null
-                board.tiles[56]?.isEmpty = true
-                findButtonFromTile(board.tiles[56]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
-                board.tiles[59] = Tile(3,7)
-                board.tiles[59]?.chessPiece = Rook(3,7,1)
-                board.tiles[59]?.isEmpty = false
-            }
-            "g8" -> {
-                board.tiles[63]?.chessPiece = null
-                board.tiles[63]?.isEmpty = true
-                findButtonFromTile(board.tiles[63]!!)?.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
-                board.tiles[61] = Tile(5,7)
-                board.tiles[61]?.chessPiece = Rook(5,7,1)
-                board.tiles[61]?.isEmpty = false
-            }
-        }
+        board.manageCastling(currentTile)
+        drawBoard()
     }
 
     private fun createPromotionPopupWindow(){
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val autoQueenPromotion = prefs.getBoolean("autoqueenpromotion", true)
 
         if(autoQueenPromotion){
-            promotePawnTo(1)
+            managePromotion(1)
         } else{
             val factory = LayoutInflater.from(this)
             val promotionDialogView: View = factory.inflate(R.layout.dialog_promote, null)
-            val promoteDialog: android.app.AlertDialog? = android.app.AlertDialog.Builder(this).create()
+            val promoteDialog: AlertDialog? = AlertDialog.Builder(this).create()
             promoteDialog?.setView(promotionDialogView)
             promoteDialog?.setCancelable(false)
             promoteDialog?.setCanceledOnTouchOutside(false)
@@ -277,90 +283,33 @@ class GameViewActivity : AppCompatActivity() {
 
             promotionDialogView.findViewById<ImageButton>(R.id.promote_queen)
                 .setOnClickListener {
-                    promotePawnTo(1)
+                    managePromotion(1)
                     promoteDialog?.dismiss()
                 }
             promotionDialogView.findViewById<ImageButton>(R.id.promote_rook)
                 .setOnClickListener {
-                    promotePawnTo(2)
+                    managePromotion(2)
                     promoteDialog?.dismiss()
                 }
             promotionDialogView.findViewById<ImageButton>(R.id.promote_bishop)
                 .setOnClickListener {
-                    promotePawnTo(3)
+                    managePromotion(3)
                     promoteDialog?.dismiss()
                 }
             promotionDialogView.findViewById<ImageButton>(R.id.promote_knight)
                 .setOnClickListener {
-                    promotePawnTo(4)
+                    managePromotion(4)
                     promoteDialog?.dismiss()
                 }
             promoteDialog!!.show()
         }
     }
 
-    private fun promotePawnTo(id: Int){
-        var piece: ChessPiece? = null
-        //Queen
-        when (id) {
-            1 -> {
-                piece = Queen(previouslySelectedTile!!.x_coord, previouslySelectedTile!!.y_coord, lastStep)
-            }
-            //Rook
-            2 -> {
-                piece = Rook(previouslySelectedTile!!.x_coord, previouslySelectedTile!!.y_coord, lastStep)
-            }
-            //Bishop
-            3 -> {
-                piece = Bishop(previouslySelectedTile!!.x_coord, previouslySelectedTile!!.y_coord, lastStep)
-            }
-            //Knight
-            4 -> {
-                piece = Knight(previouslySelectedTile!!.x_coord, previouslySelectedTile!!.y_coord, lastStep)
-            }
-        }
-        board.tiles[previouslySelectedTile!!.x_coord + previouslySelectedTile!!.y_coord*8]?.chessPiece = piece
+    private fun managePromotion(id: Int){
+
+        board.promotePawnTo(id, previouslySelectedTile, lastStep)
+
         drawBoard()
-    }
-
-    private fun checkForKingAttack(tile: Tile, b: Board): Boolean{
-        var attacked = false
-
-        if(tile.chessPiece !is King) return false
-
-        for(t in b.tiles){
-            val piece = t?.chessPiece
-            if(piece != null){
-                //If the selected piece is attacking the enemy King
-                if(piece.isAttackingTile(tile,b) && piece.player != (tile.chessPiece as King).player){
-                    attacked = true
-                }
-            }
-        }
-        return attacked
-    }
-
-    private fun checkForAttack(tile: Tile, b: Board): Int{
-        var white = false
-        var black = false
-        for(t in b.tiles){
-            val piece = t?.chessPiece
-            if(piece != null){
-                //If the selected piece is attacking the tile
-                if(piece.isAttackingTile(tile,b)){
-                    if(piece.player == 0){
-                        white = true
-                    }
-                    else if(piece.player == 1){
-                        black = true
-                    }
-                }
-            }
-        }
-        return if(white && black) 2
-        else if(!white && black) 1
-        else if(white && !black) 0
-        else -1
     }
 
     private fun checkForCheck(b: Board, findingCheckMate: Boolean): Int{
@@ -368,7 +317,7 @@ class GameViewActivity : AppCompatActivity() {
         var checkByBlack = false
         for(t in b.tiles){
             val piece = t?.chessPiece
-            if(piece is King && checkForKingAttack(t, b)){
+            if(piece is King && b.checkForKingAttack(t)){
                 if(!findingCheckMate) highlightTileForCheck(findButtonFromTile(t)!!)
                 if(piece.player == 0) checkByBlack = true
                 if(piece.player == 1) checkByWhite = true
@@ -389,8 +338,7 @@ class GameViewActivity : AppCompatActivity() {
                 if(t?.chessPiece?.player != checkedPlayer) continue
                 val temp = b.copy()
                 for(tempTiles in temp.tiles){
-                    var tempBoard = temp.copy()
-                    val tempPiece = temp.tiles[t.x_coord + t.y_coord*8]?.chessPiece
+                    val tempBoard = temp.copy()
                     tempBoard.step(tempBoard.tiles[t.x_coord + t.y_coord*8]!!, tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!)
                     if(checkForCheck(tempBoard, true) != check) checkmate = false
 
@@ -458,6 +406,7 @@ class GameViewActivity : AppCompatActivity() {
         return null
     }
 
+    //Sets up the buttons and its onClick events.
     private fun setUpButtons(){
         buttons.add(binding.a1)
         buttons.add(binding.a2)
@@ -531,9 +480,23 @@ class GameViewActivity : AppCompatActivity() {
         buttons.add(binding.h7)
         buttons.add(binding.h8)
 
+        for(b in buttons){
+            b.setOnClickListener {
+                onTileClick(it)
+            }
+            buttonNames.add(b.contentDescription.toString())
+        }
+
         binding.settingsbtn.setOnClickListener {
             val intent = Intent(this@GameViewActivity, SettingsActivity::class.java).apply {  }
             startActivity(intent)
+        }
+
+        binding.fabBack.setOnClickListener {
+            revert()
+        }
+        binding.resetbtn.setOnClickListener {
+            resetBoard()
         }
     }
 
@@ -545,7 +508,7 @@ class GameViewActivity : AppCompatActivity() {
             val tile = board.searchForTileById(tileId)
 
             if(piece?.posX == tile?.x_coord && piece?.posY == tile?.y_coord){
-                piece?.let { getImageFromChessPiece(it) }?.let { b.setImageResource(it) }
+                piece?.let { getImageResourceFromChessPiece(it) }?.let { b.setImageResource(it) }
             }
             if(piece == null){
                 b.setImageResource(com.google.android.material.R.drawable.navigation_empty_icon)
@@ -572,8 +535,9 @@ class GameViewActivity : AppCompatActivity() {
         }
     }
 
+
     @SuppressLint("PrivateResource")
-    fun getImageFromChessPiece(piece: ChessPiece): Int {
+    fun getImageResourceFromChessPiece(piece: ChessPiece): Int {
         if(piece is Queen){
             if(piece.player==0){
                 return R.drawable.queen_white
@@ -625,58 +589,137 @@ class GameViewActivity : AppCompatActivity() {
         return com.google.android.material.R.drawable.navigation_empty_icon
     }
 
+    //Changes how the layout looks, depending on the current player
     private fun changeNextPlayer(){
-        if(!init){
+        if(!firstRound){
             if(currentPlayer == 1){
-                binding.player1indicator.text = ""
-//                binding.player2indicator.text = getString(R.string.your_round)
                 currentPlayer = 0
                 binding.root.setBackgroundResource(R.color.white)
             }
             else if(currentPlayer == 0){
-                binding.player1indicator.text = getString(R.string.your_round)
-//                binding.player2indicator.text = ""
-                currentPlayer = 1
-                binding.root.setBackgroundResource(R.color.black)
+                if(aiLevel==0){
+                    currentPlayer = 1
+                    binding.root.setBackgroundResource(R.color.black)
+                }
             }
+            buttonNames.reverse()
+            for((idx, b) in buttons.withIndex()){
+                b.contentDescription = buttonNames[idx]
+            }
+
         }
-        if(currentPlayer == 1) {
-            binding.player1indicator.text = ""
-//            binding.player2indicator.text = getString(R.string.your_round)
-        }
-        else if(currentPlayer == 0) {
-//            binding.player1indicator.text = getString(R.string.your_round)
-            binding.player2indicator.text = ""
-        }
-        if(init){
+        if(firstRound){
             binding.root.setBackgroundResource(R.color.white)
         }
-        init = false
+        firstRound = false
+        drawBoard()
     }
 
+    //Completely resets the board and everything related to it
     private fun resetBoard(){
         board = Board()
+        if(currentPlayer == 1) {
+            buttonNames.reverse()
+            for((idx, b) in buttons.withIndex()){
+                b.contentDescription = buttonNames[idx]
+            }
+        }
         previouslySelectedPiece = null
         previouslySelectedTile = null
         currentPlayer = 0
         previousBoard = Board()
-        init = true
-        reversible = false
+        firstRound = true
         latestPromote = null
         lastStep = 0
         backup.clear()
+        steps.clear()
         changeNextPlayer()
         drawBoard()
     }
 
-    private fun debugCheckmate(): Board{
-        var newBoard = Board()
-        for(t in newBoard.tiles){
-            t?.chessPiece = null
+    //Restores the board one move before current state
+    private fun revert(){
+        val size = backup.size
+        if(size == 0){
+            Snackbar.make(binding.root, "Not available!", Snackbar.ANIMATION_MODE_SLIDE).show()
+            return
         }
-        newBoard.tiles[48]?.chessPiece = Queen(5,0,0)
-        newBoard.tiles[40]?.chessPiece = Queen(4,0,0)
-        newBoard.tiles[63]?.chessPiece = King(7,7,1)
-        return newBoard
+        board = backup.removeAt(size-1).copy()
+        steps.removeAt(size-1)
+        changeNextPlayer()
+        drawBoard()
+    }
+
+    fun sendBoard(): Boolean{
+        username = prefs.getString("username", "").toString()
+        val enemy = prefs.getString("opponent", "").toString()
+        val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS").format(Calendar.getInstance().time )
+        message.child(date).setValue(steps.last() + " " + enemy)
+        return true
+    }
+
+    fun toast(string: String){
+        Toast.makeText(this, string, Toast.LENGTH_LONG).show()
+    }
+
+    fun interpretMessage(message: String){
+
+        username = prefs.getString("username", "").toString()
+
+        if(!message.contains(username) || message.contains("entered")) return
+
+        var inCharacters = message.toCharArray()
+        var piece: ChessPiece? = null
+        var prevTileCol: Int = (inCharacters[1] - 'a')
+        var prevTileRow: Int = inCharacters[2].digitToInt() - 1
+        var currentTileCol: Int = (inCharacters[3] - 'a')
+        var currentTileRow: Int = inCharacters[4].digitToInt() - 1
+
+        board.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
+        board.tiles[prevTileCol + prevTileRow*8]?.isEmpty = true
+
+        if(inCharacters[0] == 'Q'){
+            piece = Queen(currentTileCol, currentTileRow, currentPlayer)
+        }
+        else if(inCharacters[0] == 'R'){
+            piece = Rook(currentTileCol, currentTileRow, currentPlayer)
+        }
+        else if(inCharacters[0] == 'H'){
+            piece = Knight(currentTileCol, currentTileRow, currentPlayer)
+        }
+        else if(inCharacters[0] == 'K'){
+            piece = King(currentTileCol, currentTileRow, currentPlayer)
+        }
+        else if(inCharacters[0] == 'P'){
+            piece = Pawn(currentTileCol, currentTileRow, currentPlayer)
+        }
+
+        board.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece
+        board.tiles[currentTileCol + currentTileRow*8]?.isEmpty = false
+
+        changeNextPlayer()
+//        drawBoard()
+    }
+
+    @Throws(Exception::class)
+    private fun getTime(): Long {
+        val url = "https://time.is/Unix_time_now"
+        val doc: Document = Jsoup.parse(URL(url).openStream(), "UTF-8", url)
+        val tags = arrayOf(
+            "div[id=time_section]",
+            "div[id=clock0_bg]"
+        )
+        var elements: Elements = doc.select(tags[0])
+        for (i in tags.indices) {
+            elements = elements.select(tags[i])
+        }
+        return elements.text().toLong()
+    }
+
+    private fun getDate(time: Long): String? {
+        val cal = Calendar.getInstance(Locale.ENGLISH)
+        cal.timeInMillis = time * 1000
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS", Locale.ENGLISH)
+        return dateFormat.format(cal.time)
     }
 }

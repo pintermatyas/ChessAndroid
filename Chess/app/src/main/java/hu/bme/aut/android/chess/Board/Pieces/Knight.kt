@@ -5,6 +5,7 @@ import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
 
 class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
+    override var shortenedName: String = "H" //Horse
     override var stepCount = 0
     override var canPathBeBlocked = false
 

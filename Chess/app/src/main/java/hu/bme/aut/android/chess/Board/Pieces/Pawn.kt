@@ -5,6 +5,7 @@ import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
 
 class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
+    override var shortenedName: String = "P"
     override var canPathBeBlocked = false
     override var stepCount = 0
 

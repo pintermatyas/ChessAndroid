@@ -4,6 +4,7 @@ import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Tile
 
 abstract class ChessPiece(x: Int, y: Int, playerId: Int) {
+    abstract var shortenedName: String
     var posX: Int = x
     var posY: Int = y
     var firstPosX: Int = x

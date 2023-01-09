@@ -5,6 +5,7 @@ import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
 
 class Queen(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId){
+    override var shortenedName: String = "Q"
     override var stepCount = 0
 
     override fun step(tile: Tile?, board: Board) {

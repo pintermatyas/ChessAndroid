@@ -33,10 +33,21 @@ class MainActivity : AppCompatActivity() {
 
         binding.startbtn.setOnClickListener {
             val intent = Intent(this@MainActivity, GameViewActivity::class.java).apply {  }
+            intent.putExtra("multiplayer", false)
             startActivity(intent)
         }
         binding.settingsbtn.setOnClickListener {
             val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {  }
+            startActivity(intent)
+        }
+
+
+        binding.multiplayer.setOnClickListener {
+            username = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "").toString()
+            message.child("players").child(username).setValue("online")
+
+            val intent = Intent(this@MainActivity, MultiplayerScreenActivity::class.java).apply {  }
+            intent.putExtra("multiplayer", true)
             startActivity(intent)
         }
 
@@ -46,30 +57,19 @@ class MainActivity : AppCompatActivity() {
         //firebase teszt
         database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
         message = database.reference
-//        message = Firebase.database.reference
 //        message.child("users").child(username).setValue("")
 
-//        message.setValue("teszt")
 
         message.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val map = dataSnapshot.value as Map<*, *>?
                 val values = listOf(map?.values?.last())
-//                toast(values.last().toString())
             }
 
             override fun onCancelled(error: DatabaseError) {
 
             }
         })
-
-        binding.tesztbtn.setOnClickListener {
-            username = prefs.getString("username", "").toString()
-            val date = SimpleDateFormat("yyyy-MM-dd HH:mm").format(Calendar.getInstance().time )
-            message.child(date).setValue(binding.messengerteszt.text.toString())
-
-
-        }
 
 
     }

@@ -59,24 +59,24 @@ class GameViewActivity : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        multiplayer = intent.extras!!.getBoolean("multiplayer")
         super.onCreate(savedInstanceState)
         binding = ActivityGameViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
 
-        if(multiplayer){
-            binding.fabBack.isVisible = false
-        }
 
         board = Board()
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        multiplayer = prefs.getBoolean("multiplayer", true)
+//        multiplayer = prefs.getBoolean("multiplayer", true)
 
 
         database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
         message = database.reference
         username = prefs.getString("username", "").toString()
 
+        binding.fabBack.isVisible = false
+        message.child("players").child(username).setValue("unavailable")
         message.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 runOnUiThread {
@@ -89,23 +89,27 @@ class GameViewActivity : AppCompatActivity() {
                     toast(values.last().toString())
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
-
             }
         })
 
 
-//        getDate(getTime())
-        message.child(SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS").format(Calendar.getInstance().time)).setValue(username + " entered")
-
-
-
         setUpButtons()
-
         drawBoard()
         changeNextPlayer()
 
+    }
+
+    override fun onPause() {
+        super.onPause()
+        message.child("players").child(username).setValue("offline")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(multiplayer){
+            message.child("players").child(username).setValue("unavailable")
+        }
     }
 
     @SuppressLint("PrivateResource")
@@ -663,6 +667,8 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     fun interpretMessage(message: String){
+
+        return
 
         username = prefs.getString("username", "").toString()
 

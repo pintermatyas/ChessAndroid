@@ -53,8 +53,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         //Ha ki van kapcsolva a multiplayer a beállításokban, nem jelenik meg a gomb
-        var prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        binding.multiplayer.isVisible = !prefs.getBoolean("multiplayer", false)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        binding.multiplayer.isVisible = prefs.getBoolean("multiplayer", false).toString()=="false"
 
 
         //firebase teszt
@@ -75,6 +75,12 @@ class MainActivity : AppCompatActivity() {
         })
 
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        var prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        binding.multiplayer.isVisible = prefs.getBoolean("multiplayer", false).toString()=="true"
     }
 
     fun toast(string: String){

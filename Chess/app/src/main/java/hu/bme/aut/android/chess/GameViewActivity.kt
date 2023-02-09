@@ -25,6 +25,7 @@ import org.jsoup.select.Elements
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.abs
 
 
@@ -48,7 +49,12 @@ class GameViewActivity : AppCompatActivity() {
     private var aiLevel = 0 //0: disabled
     private lateinit var prefs: SharedPreferences
 
-    private var multiplayer = true
+    private var multiplayer = false
+    private var opponent = ""
+    private var match = ""
+    var whitePlayer = ""
+    var blackPlayer = ""
+    var opponentMove = ""
 
     //firebase
     private lateinit var database: FirebaseDatabase
@@ -60,33 +66,71 @@ class GameViewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         multiplayer = intent.extras!!.getBoolean("multiplayer")
+        opponent = intent.extras!!.getString("opponent").toString()
+        match = intent.extras!!.getString("match").toString()
+//        toast(match)
+
+        //Toast.makeText(this, "opponent: $opponent", Toast.LENGTH_SHORT).show()
         super.onCreate(savedInstanceState)
         binding = ActivityGameViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
+        var init = true
 
 
         board = Board()
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        multiplayer = prefs.getBoolean("multiplayer", true)
+//        multiplayer = prefs.getBoolean("multiplayer", true)
 
 
         database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
         message = database.reference
         username = prefs.getString("username", "").toString()
 
-        if(multiplayer) binding.fabBack.isVisible = false
-        message.child("players").child(username).setValue("unavailable")
+        if(multiplayer) {
+            binding.fabBack.isVisible = false
+            binding.resetbtn.isVisible = false
+        }
+        if(multiplayer){
+            message.child("players").child(username).setValue("unavailable")
+        }
+
+
         message.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                runOnUiThread {
-                    val map = dataSnapshot.value as Map<String, *>?
-                    val sortedMap = map?.toSortedMap(compareBy<String?>{it})
-                    val values = listOf(sortedMap?.values?.last())
-                    if(values.last().toString().contains(username)){
-                        interpretMessage(values.last().toString())
+                if (multiplayer) {
+                    val map = dataSnapshot.value as Map<*, *>?
+
+//                    toast(match)
+
+                    var games = map!!["games"] as HashMap<*, *>
+                    var game = games[match] as HashMap<*, *>
+                    whitePlayer = game["white"].toString()
+                    blackPlayer = game["black"].toString()
+                    if(init){
+                        message.child("games").child(match).child("next").setValue(whitePlayer)
+                        if(blackPlayer == username){
+                            buttonNames.reverse()
+                            for((idx, b) in buttons.withIndex()) {
+                                b.contentDescription = buttonNames[idx]
+                            }
+                            drawBoard()
+                            init = false
+                        }
+                        else if(whitePlayer == username){
+                            init = false
+                        }
                     }
-                    toast(values.last().toString())
+                    var recentMove = game[opponent].toString()
+                    if(recentMove == opponentMove){
+                        return
+                    } else opponentMove = recentMove
+                    var tempBoard = interpretMessage(opponentMove)
+//                    changeNextPlayer()
+                    board = tempBoard.copy()
+                    drawBoard()
+                    return
+//                }
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -102,12 +146,23 @@ class GameViewActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        if(multiplayer){
+            message.child("games").child(match).child(username).setValue("left")
+        }
         message.child("players").child(username).setValue("offline")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if(multiplayer){
+            message.child("games").child(match).child(username).setValue("left")
+        }
     }
 
     override fun onResume() {
         super.onResume()
         if(multiplayer){
+            message.child("games").child(match).child(username).setValue("entered")
             message.child("players").child(username).setValue("unavailable")
         }
     }
@@ -217,7 +272,9 @@ class GameViewActivity : AppCompatActivity() {
             if(multiplayer){
                 sent = sendBoard()
             }
-            changeNextPlayer()
+            if(!multiplayer){
+                changeNextPlayer()
+            }
             previouslySelectedPiece = null
             checkForCheck(board, false)
             checkForCheckMate(board)
@@ -485,10 +542,13 @@ class GameViewActivity : AppCompatActivity() {
         buttons.add(binding.h8)
 
         for(b in buttons){
+            buttonNames.add(b.contentDescription.toString())
+        }
+
+        for(b in buttons){
             b.setOnClickListener {
                 onTileClick(it)
             }
-            buttonNames.add(b.contentDescription.toString())
         }
 
         binding.settingsbtn.setOnClickListener {
@@ -506,6 +566,9 @@ class GameViewActivity : AppCompatActivity() {
 
     @SuppressLint("PrivateResource")
     fun drawBoard(){
+        if(currentPlayer == 0){
+            binding.root.setBackgroundResource(R.color.white)
+        } else binding.root.setBackgroundResource(R.color.black)
         for(b in buttons){
             val piece = board.searchForTileById(b.contentDescription.toString())?.chessPiece
             val tileId = b.contentDescription.toString()
@@ -597,10 +660,13 @@ class GameViewActivity : AppCompatActivity() {
     private fun changeNextPlayer(){
 
         if(!firstRound){
-            for(b in buttons){
-                if(currentPlayer == 0){
-                    b.rotation = 180F
-                } else b.rotation = 0F
+            if(!multiplayer){
+                for(b in buttons){
+                    if(currentPlayer == 0){
+                        b.rotation = 180F
+                    } else b.rotation = 0F
+                }
+
             }
             if(currentPlayer == 1){
                 currentPlayer = 0
@@ -668,9 +734,11 @@ class GameViewActivity : AppCompatActivity() {
 
     fun sendBoard(): Boolean{
         username = prefs.getString("username", "").toString()
-        val enemy = prefs.getString("opponent", "").toString()
-        val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS").format(Calendar.getInstance().time )
-        message.child(date).setValue(steps.last() + " " + enemy)
+
+        message.child("games").child(match).child(username).setValue(steps.last())
+        message.child("games").child(match).child("next").setValue(opponent)
+        changeNextPlayer()
+
         return true
     }
 
@@ -678,13 +746,13 @@ class GameViewActivity : AppCompatActivity() {
         Toast.makeText(this, string, Toast.LENGTH_LONG).show()
     }
 
-    fun interpretMessage(message: String){
+    fun interpretMessage(message: String): Board{
 
-        return
+        var oldBoard = board.copy()
 
         username = prefs.getString("username", "").toString()
 
-        if(!message.contains(username) || message.contains("entered")) return
+        if(message.contains("entered") || message.contains("left")) return oldBoard
 
         var inCharacters = message.toCharArray()
         var piece: ChessPiece? = null
@@ -693,8 +761,8 @@ class GameViewActivity : AppCompatActivity() {
         var currentTileCol: Int = (inCharacters[3] - 'a')
         var currentTileRow: Int = inCharacters[4].digitToInt() - 1
 
-        board.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
-        board.tiles[prevTileCol + prevTileRow*8]?.isEmpty = true
+        oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
+        oldBoard.tiles[prevTileCol + prevTileRow*8]?.isEmpty = true
 
         if(inCharacters[0] == 'Q'){
             piece = Queen(currentTileCol, currentTileRow, currentPlayer)
@@ -712,11 +780,20 @@ class GameViewActivity : AppCompatActivity() {
             piece = Pawn(currentTileCol, currentTileRow, currentPlayer)
         }
 
-        board.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece
-        board.tiles[currentTileCol + currentTileRow*8]?.isEmpty = false
+        oldBoard.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece
+        oldBoard.tiles[currentTileCol + currentTileRow*8]?.isEmpty = false
+
+//        if(oldBoard != board){
+//            changeNextPlayer()
+//            drawBoard()
+//            return oldBoard
+//        }
 
         changeNextPlayer()
-//        drawBoard()
+        drawBoard()
+
+        return oldBoard
+
     }
 
     @Throws(Exception::class)

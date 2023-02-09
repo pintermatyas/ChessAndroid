@@ -68,14 +68,14 @@ class GameViewActivity : AppCompatActivity() {
 
         board = Board()
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
-//        multiplayer = prefs.getBoolean("multiplayer", true)
+        multiplayer = prefs.getBoolean("multiplayer", true)
 
 
         database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
         message = database.reference
         username = prefs.getString("username", "").toString()
 
-        binding.fabBack.isVisible = false
+        if(multiplayer) binding.fabBack.isVisible = false
         message.child("players").child(username).setValue("unavailable")
         message.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -595,7 +595,13 @@ class GameViewActivity : AppCompatActivity() {
 
     //Changes how the layout looks, depending on the current player
     private fun changeNextPlayer(){
+
         if(!firstRound){
+            for(b in buttons){
+                if(currentPlayer == 0){
+                    b.rotation = 180F
+                } else b.rotation = 0F
+            }
             if(currentPlayer == 1){
                 currentPlayer = 0
                 binding.root.setBackgroundResource(R.color.white)
@@ -606,10 +612,10 @@ class GameViewActivity : AppCompatActivity() {
                     binding.root.setBackgroundResource(R.color.black)
                 }
             }
-            buttonNames.reverse()
-            for((idx, b) in buttons.withIndex()){
-                b.contentDescription = buttonNames[idx]
-            }
+//            buttonNames.reverse()
+//            for((idx, b) in buttons.withIndex()){
+//                b.contentDescription = buttonNames[idx]
+//            }
 
         }
         if(firstRound){
@@ -623,10 +629,11 @@ class GameViewActivity : AppCompatActivity() {
     private fun resetBoard(){
         board = Board()
         if(currentPlayer == 1) {
-            buttonNames.reverse()
-            for((idx, b) in buttons.withIndex()){
-                b.contentDescription = buttonNames[idx]
-            }
+//            buttonNames.reverse()
+//            for((idx, b) in buttons.withIndex()){
+//                b.contentDescription = buttonNames[idx]
+//            }
+            changeNextPlayer()
         }
         previouslySelectedPiece = null
         previouslySelectedTile = null
@@ -643,6 +650,11 @@ class GameViewActivity : AppCompatActivity() {
 
     //Restores the board one move before current state
     private fun revert(){
+//        for(b in buttons){
+//            b.rotation = 180F
+//        }
+//        return
+
         val size = backup.size
         if(size == 0){
             Snackbar.make(binding.root, "Not available!", Snackbar.ANIMATION_MODE_SLIDE).show()

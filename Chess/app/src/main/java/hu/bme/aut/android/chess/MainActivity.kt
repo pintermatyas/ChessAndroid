@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
@@ -51,9 +52,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
-
+        //Ha ki van kapcsolva a multiplayer a beállításokban, nem jelenik meg a gomb
         var prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        binding.multiplayer.isVisible = !prefs.getBoolean("multiplayer", false)
+
+
         //firebase teszt
         database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
         message = database.reference

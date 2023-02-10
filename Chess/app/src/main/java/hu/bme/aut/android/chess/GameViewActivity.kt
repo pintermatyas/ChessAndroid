@@ -2,9 +2,11 @@ package hu.bme.aut.android.chess
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
@@ -14,7 +16,6 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.*
-import com.google.firebase.ktx.Firebase
 import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Pieces.*
 import hu.bme.aut.android.chess.Board.Tile
@@ -55,6 +56,7 @@ class GameViewActivity : AppCompatActivity() {
     var whitePlayer = ""
     var blackPlayer = ""
     var opponentMove = ""
+    var enterLogged = false
 
     //firebase
     private lateinit var database: FirebaseDatabase
@@ -65,6 +67,7 @@ class GameViewActivity : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "MATCH ENTERED")
         multiplayer = intent.extras!!.getBoolean("multiplayer")
         opponent = intent.extras!!.getString("opponent").toString()
         match = intent.extras!!.getString("match").toString()
@@ -90,9 +93,13 @@ class GameViewActivity : AppCompatActivity() {
         if(multiplayer) {
             binding.fabBack.isVisible = false
             binding.resetbtn.isVisible = false
-        }
-        if(multiplayer){
+            binding.player2indicator.isVisible = true
+            binding.player2indicator.text = opponent
             message.child("players").child(username).setValue("unavailable")
+        } else{
+            binding.fabBack.isVisible = true
+            binding.resetbtn.isVisible = true
+            binding.player2indicator.isVisible = false
         }
 
 
@@ -104,9 +111,53 @@ class GameViewActivity : AppCompatActivity() {
 //                    toast(match)
 
                     var games = map!!["games"] as HashMap<*, *>
-                    var game = games[match] as HashMap<*, *>
+
+                    if(games[match].toString() == "ended"){
+                        finish()
+                        return
+                    }
+
+                    if(games[match] == null){
+                        return
+                    }
+                    var game = games[match]!! as HashMap<*, *>
+
+                    if(game[opponent].toString() == "entered" && game[username].toString() == "entered" && !enterLogged){
+                        val log = map!!["log"] as ArrayList<*>
+                        message.child("log").child((log.size+1).toString()).setValue("entered")
+                        enterLogged = true
+
+                    }
+
+
+                    if(game[opponent].toString() == "left"){
+//                        toast("Opponent left the game")
+                        message.child("games").child(match).child(opponent).setValue("idle")
+                        message.child("games").child(match).child(username).setValue("idle")
+                        message.child("games").child(match).setValue("ended")
+                        message.child("games").child(match).removeValue()
+                        Log.d("LOGGING OFF", "$opponent left")
+                        finish()
+                        return
+                    }
+
+                    else if(game[opponent].toString() == "idle"){
+//                        toast("Waiting for opponent...")
+                        return
+                    }
+
                     whitePlayer = game["white"].toString()
                     blackPlayer = game["black"].toString()
+                    if(whitePlayer == "" && blackPlayer == ""){
+                        val rand = Calendar.getInstance().timeInMillis % 2
+                        if(rand == 0L){
+                            message.child("games").child(match).child("white").setValue(opponent)
+                            message.child("games").child(match).child("black").setValue(username)
+                            whitePlayer = game["white"].toString()
+                            blackPlayer = game["black"].toString()
+                            message.child("games").child(match).child("next").setValue(whitePlayer)
+                        }
+                    }
                     if(init){
                         message.child("games").child(match).child("next").setValue(whitePlayer)
                         if(blackPlayer == username){
@@ -148,6 +199,8 @@ class GameViewActivity : AppCompatActivity() {
         super.onPause()
         if(multiplayer){
             message.child("games").child(match).child(username).setValue("left")
+            message.child("games").child(match).setValue("ended")
+            message.child("games").child(match).removeValue()
         }
         message.child("players").child(username).setValue("offline")
     }
@@ -155,7 +208,9 @@ class GameViewActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if(multiplayer){
+            message.child("games").child(match).setValue("ended")
             message.child("games").child(match).child(username).setValue("left")
+            message.child("games").child(match).removeValue()
         }
     }
 
@@ -198,52 +253,61 @@ class GameViewActivity : AppCompatActivity() {
             //Step
             if(previouslySelectedPiece?.player == currentPlayer){
                 if(currentTile?.let { previouslySelectedPiece!!.checkIfValidMove(it,board) } == true){
-                    val tempBoard = board.copy()
-                    val currentTileCopy = tempBoard.tiles[currentTile.x_coord + currentTile.y_coord*8]
-                    val prevSelectedPieceCopy = previouslySelectedPiece!!.copy()
-                    val prevTileCopy = tempBoard.tiles[previouslySelectedTile!!.x_coord + previouslySelectedTile!!.y_coord*8]
-                    prevTileCopy?.let {
-                        tempBoard.step(it, currentTileCopy!!)
-                        it.chessPiece = null
-                        it.isEmpty = true
-                        currentTileCopy.isEmpty = false
-                        currentTileCopy.chessPiece = prevSelectedPieceCopy
-                        currentTileCopy.chessPiece?.posX = currentTileCopy.x_coord
-                        currentTileCopy.chessPiece?.posY = currentTileCopy.y_coord
+                    var playerNumber = -1
+                    if(whitePlayer == username){
+                        playerNumber = 0
+                    } else if(whitePlayer == opponent){
+                        playerNumber = 1
+                    }
+                    if(!multiplayer || (multiplayer && currentPlayer == playerNumber)){
+                        val tempBoard = board.copy()
+                        val currentTileCopy = tempBoard.tiles[currentTile.x_coord + currentTile.y_coord*8]
+                        val prevSelectedPieceCopy = previouslySelectedPiece!!.copy()
+                        val prevTileCopy = tempBoard.tiles[previouslySelectedTile!!.x_coord + previouslySelectedTile!!.y_coord*8]
+                        prevTileCopy?.let {
+                            tempBoard.step(it, currentTileCopy!!)
+                            it.chessPiece = null
+                            it.isEmpty = true
+                            currentTileCopy.isEmpty = false
+                            currentTileCopy.chessPiece = prevSelectedPieceCopy
+                            currentTileCopy.chessPiece?.posX = currentTileCopy.x_coord
+                            currentTileCopy.chessPiece?.posY = currentTileCopy.y_coord
+                        }
+
+                        val opponent = if(currentPlayer==0) 1 else 0
+                        if(!mutableListOf(2, opponent).contains(checkForCheck(tempBoard, false))){
+                            //Backup the Board
+                            for(i in 0..63){
+                                previousBoard.tiles[i] = board.tiles[i]?.copy()
+                                if(board.tiles[i] == null){
+                                    previousBoard.tiles[i] = null
+                                }
+                            }
+                            backup.add(previousBoard.copy())
+                            steps.add(previouslySelectedPiece?.shortenedName +  previouslySelectedTile?.tileName + currentTile.tileName)
+//                        Toast.makeText(this, steps.last(), Toast.LENGTH_SHORT).show()
+                            previouslySelectedTile?.let {
+                                board.step(it, currentTile)
+                                it.chessPiece = null
+                                currentTile.chessPiece = previouslySelectedPiece
+                                currentTile.chessPiece?.posX = currentTile.x_coord
+                                currentTile.chessPiece?.posY = currentTile.y_coord
+                            }
+                            previouslySelectedPiece!!.step(currentTile,board)
+                            prevTile = previouslySelectedTile
+                            step = true
+                            if(previouslySelectedPiece is King && abs(prevTile!!.x_coord - currentTile.x_coord) > 1){
+                                castling = true
+                            }
+                            if(previouslySelectedPiece is Pawn){
+                                if((previouslySelectedPiece as Pawn).checkForTradeability()){
+                                    promote = true
+                                }
+                            }
+                            previouslySelectedPiece = null
+                        }
                     }
 
-                    val opponent = if(currentPlayer==0) 1 else 0
-                    if(!mutableListOf(2, opponent).contains(checkForCheck(tempBoard, false))){
-                        //Backup the Board
-                        for(i in 0..63){
-                            previousBoard.tiles[i] = board.tiles[i]?.copy()
-                            if(board.tiles[i] == null){
-                                previousBoard.tiles[i] = null
-                            }
-                        }
-                        backup.add(previousBoard.copy())
-                        steps.add(previouslySelectedPiece?.shortenedName +  previouslySelectedTile?.tileName + currentTile.tileName)
-//                        Toast.makeText(this, steps.last(), Toast.LENGTH_SHORT).show()
-                        previouslySelectedTile?.let {
-                            board.step(it, currentTile)
-                            it.chessPiece = null
-                            currentTile.chessPiece = previouslySelectedPiece
-                            currentTile.chessPiece?.posX = currentTile.x_coord
-                            currentTile.chessPiece?.posY = currentTile.y_coord
-                        }
-                        previouslySelectedPiece!!.step(currentTile,board)
-                        prevTile = previouslySelectedTile
-                        step = true
-                        if(previouslySelectedPiece is King && abs(prevTile!!.x_coord - currentTile.x_coord) > 1){
-                            castling = true
-                        }
-                        if(previouslySelectedPiece is Pawn){
-                            if((previouslySelectedPiece as Pawn).checkForTradeability()){
-                                promote = true
-                            }
-                        }
-                        previouslySelectedPiece = null
-                    }
                 }
             }
         }
@@ -270,7 +334,15 @@ class GameViewActivity : AppCompatActivity() {
             board.tiles[currentTile.x_coord + currentTile.y_coord*8]?.isEmpty = false
             var sent = false
             if(multiplayer){
-                sent = sendBoard()
+                var playerNumber = -1
+                if(whitePlayer == username){
+                    playerNumber = 0
+                } else if(whitePlayer == opponent){
+                    playerNumber = 1
+                }
+                if(currentPlayer == playerNumber){
+                    sent = sendBoard()
+                }
             }
             if(!multiplayer){
                 changeNextPlayer()
@@ -752,14 +824,29 @@ class GameViewActivity : AppCompatActivity() {
 
         username = prefs.getString("username", "").toString()
 
-        if(message.contains("entered") || message.contains("left")) return oldBoard
+        if(message.contains("entered") || message.contains("left") || message.contains("idle") || message == "null" || message == "") return oldBoard
 
         var inCharacters = message.toCharArray()
         var piece: ChessPiece? = null
         var prevTileCol: Int = (inCharacters[1] - 'a')
+
+        Log.d("MESSAGE", "$message")
+
         var prevTileRow: Int = inCharacters[2].digitToInt() - 1
         var currentTileCol: Int = (inCharacters[3] - 'a')
         var currentTileRow: Int = inCharacters[4].digitToInt() - 1
+
+//        var opponentNumber = -1
+//        if(whitePlayer == username){
+//            opponentNumber = 1
+//        } else if(whitePlayer == opponent){
+//            opponentNumber == 0
+//        }
+//
+//
+//        if(oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.player != opponentNumber){
+//            return oldBoard
+//        }
 
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.isEmpty = true
@@ -778,6 +865,9 @@ class GameViewActivity : AppCompatActivity() {
         }
         else if(inCharacters[0] == 'P'){
             piece = Pawn(currentTileCol, currentTileRow, currentPlayer)
+        }
+        else if(inCharacters[0] == 'B'){
+            piece = Bishop(currentTileCol, currentTileRow, currentPlayer)
         }
 
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece

@@ -45,6 +45,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.multiplayer.setOnClickListener {
             username = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "").toString()
+            if(username == ""){
+                Toast.makeText(this, "Username is not set!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             message.child("players").child(username).setValue("online")
 
             val intent = Intent(this@MainActivity, MultiplayerScreenActivity::class.java).apply {  }

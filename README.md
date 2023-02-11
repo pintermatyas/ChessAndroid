@@ -17,3 +17,9 @@ As you can see, it's a basic chess board.
 
 ### Even if it's highlighted, when in check, you can't step on a field which does not prevent check.
 ![](Documentation/Screenshot_20230209_095231_Chess.jpg)
+
+## Multiplayer
+
+### The same board from both sides
+<img src="Documentation/multiplayer_sample2.jpg" width="50%">
+<img src="Documentation/multiplayer_sample1.jpg" width="49%">

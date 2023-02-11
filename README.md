@@ -21,5 +21,5 @@ As you can see, it's a basic chess board.
 ## Multiplayer
 
 ### The same board from both sides
-<img src="Documentation/multiplayer_sample2.jpg" width="50%">
-<img src="Documentation/multiplayer_sample1.jpg" width="49%">
+<img src="Documentation/multiplayer_sample2.jpg" width="40%">
+<img src="Documentation/multiplayer_sample1.jpg" width="40%">

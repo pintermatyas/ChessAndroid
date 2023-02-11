@@ -42,11 +42,18 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     var state: String = ""
                     opponent = ""
 
+                    val oldLog = log
+
+
+
 
                     log = ArrayList<String>()
 
                     log = map!!["log"] as ArrayList<*>
                     logSize = log.size
+
+                    if(oldLog == log && log.last().toString() == "entered") return
+
 //                if(!joinLog){
 //                    message!!.child("log").child(logSize.toString()).setValue("$username joined")
 //                    joinLog = true
@@ -59,7 +66,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 
 
 
-                    if(log.last().toString().contains(username) && !connected){
+                    if(log.last().toString().contains(username) && !connected && oldLog != log){
                         message!!.child("games").child(log.last().toString()).child(username).setValue("entered")
                     }
 
@@ -72,8 +79,8 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     Log.d("GAME STATUS", game)
 
                     if(game == "entered"){
-                        state = updateOnlinePlayers(map)
-                        Log.d("LOGGING STATUS", "LAST MESSAGE IS ENTERED")
+                        updateOnlinePlayers(map)
+//                        Log.d("LOGGING STATUS", "LAST MESSAGE IS ENTERED")
                         log = map!!["log"] as ArrayList<*>
                         logSize = log.size
                         createPairing(map)

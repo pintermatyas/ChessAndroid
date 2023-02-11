@@ -57,6 +57,7 @@ class GameViewActivity : AppCompatActivity() {
     var blackPlayer = ""
     var opponentMove = ""
     var enterLogged = false
+    var flippedBoard = false
 
     //firebase
     private lateinit var database: FirebaseDatabase
@@ -95,6 +96,7 @@ class GameViewActivity : AppCompatActivity() {
             binding.resetbtn.isVisible = false
             binding.player2indicator.isVisible = true
             binding.player2indicator.text = opponent
+            binding.settingsbtn.isVisible = false
             message.child("players").child(username).setValue("unavailable")
         } else{
             binding.fabBack.isVisible = true
@@ -158,6 +160,17 @@ class GameViewActivity : AppCompatActivity() {
                             message.child("games").child(match).child("next").setValue(whitePlayer)
                         }
                     }
+
+                    if(whitePlayer == username && flippedBoard){
+                        buttonNames.reverse()
+                        for((idx, b) in buttons.withIndex()) {
+                            b.contentDescription = buttonNames[idx]
+                        }
+                        drawBoard()
+                        flippedBoard = false
+
+                    }
+
                     if(init){
                         message.child("games").child(match).child("next").setValue(whitePlayer)
                         if(blackPlayer == username){
@@ -167,6 +180,7 @@ class GameViewActivity : AppCompatActivity() {
                             }
                             drawBoard()
                             init = false
+                            flippedBoard = true
                         }
                         else if(whitePlayer == username){
                             init = false
@@ -448,6 +462,8 @@ class GameViewActivity : AppCompatActivity() {
     private fun checkForCheck(b: Board, findingCheckMate: Boolean): Int{
         var checkByWhite = false
         var checkByBlack = false
+
+
         for(t in b.tiles){
             val piece = t?.chessPiece
             if(piece is King && b.checkForKingAttack(t)){
@@ -456,6 +472,8 @@ class GameViewActivity : AppCompatActivity() {
                 if(piece.player == 1) checkByWhite = true
             }
         }
+
+
         return if(checkByBlack && checkByWhite) 2
         else if(!checkByWhite && checkByBlack) 1
         else if(checkByWhite && !checkByBlack) 0
@@ -750,10 +768,6 @@ class GameViewActivity : AppCompatActivity() {
                     binding.root.setBackgroundResource(R.color.black)
                 }
             }
-//            buttonNames.reverse()
-//            for((idx, b) in buttons.withIndex()){
-//                b.contentDescription = buttonNames[idx]
-//            }
 
         }
         if(firstRound){
@@ -767,10 +781,6 @@ class GameViewActivity : AppCompatActivity() {
     private fun resetBoard(){
         board = Board()
         if(currentPlayer == 1) {
-//            buttonNames.reverse()
-//            for((idx, b) in buttons.withIndex()){
-//                b.contentDescription = buttonNames[idx]
-//            }
             changeNextPlayer()
         }
         previouslySelectedPiece = null
@@ -847,37 +857,47 @@ class GameViewActivity : AppCompatActivity() {
 //        if(oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.player != opponentNumber){
 //            return oldBoard
 //        }
+        var oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece
+        var player = oldPiece?.player
 
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.isEmpty = true
 
+        if(player==null) player = 0
+
+
+
+
         if(inCharacters[0] == 'Q'){
-            piece = Queen(currentTileCol, currentTileRow, currentPlayer)
+            piece = Queen(currentTileCol, currentTileRow, player)
         }
         else if(inCharacters[0] == 'R'){
-            piece = Rook(currentTileCol, currentTileRow, currentPlayer)
+            piece = Rook(currentTileCol, currentTileRow, player)
         }
         else if(inCharacters[0] == 'H'){
-            piece = Knight(currentTileCol, currentTileRow, currentPlayer)
+            piece = Knight(currentTileCol, currentTileRow, player)
         }
         else if(inCharacters[0] == 'K'){
-            piece = King(currentTileCol, currentTileRow, currentPlayer)
+            piece = King(currentTileCol, currentTileRow, player)
         }
         else if(inCharacters[0] == 'P'){
-            piece = Pawn(currentTileCol, currentTileRow, currentPlayer)
+            piece = Pawn(currentTileCol, currentTileRow, player)
         }
         else if(inCharacters[0] == 'B'){
-            piece = Bishop(currentTileCol, currentTileRow, currentPlayer)
+            piece = Bishop(currentTileCol, currentTileRow, player)
         }
+
+
+        piece!!.firstPosX = oldPiece!!.firstPosX
+        piece.firstPosY = oldPiece.firstPosY
+        piece.shortenedName = oldPiece.shortenedName
+        piece.imagePath = oldPiece.imagePath
+        piece.stepCount = oldPiece.stepCount
+        piece.canPathBeBlocked = oldPiece.canPathBeBlocked
+        piece.isAlive = oldPiece.isAlive
 
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.isEmpty = false
-
-//        if(oldBoard != board){
-//            changeNextPlayer()
-//            drawBoard()
-//            return oldBoard
-//        }
 
         changeNextPlayer()
         drawBoard()

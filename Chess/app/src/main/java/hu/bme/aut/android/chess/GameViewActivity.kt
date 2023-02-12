@@ -254,6 +254,13 @@ class GameViewActivity : AppCompatActivity() {
         var step = false
         var prevTile: Tile? = null
 
+        if(previouslySelectedTile?.tileName == currentTile?.tileName && steps.last().substring(steps.last().length-2) != currentTile!!.tileName){
+            drawBoard()
+            previouslySelectedTile = null
+            previouslySelectedPiece = null
+            return
+        }
+
         if(previouslySelectedPiece == null && currentPiece?.player == currentPlayer){
             previouslySelectedPiece = currentPiece
         }
@@ -336,7 +343,7 @@ class GameViewActivity : AppCompatActivity() {
             } else if(promote){
                 latestPromote = prevPiece
                 lastStep = currentPlayer
-                createPromotionPopupWindow()
+                createPromotionPopupWindow(prevTile)
             }
 
             drawBoard()
@@ -354,7 +361,7 @@ class GameViewActivity : AppCompatActivity() {
                 } else if(whitePlayer == opponent){
                     playerNumber = 1
                 }
-                if(currentPlayer == playerNumber){
+                if(currentPlayer == playerNumber && !promote){
                     sent = sendBoard()
                 }
             }
@@ -403,11 +410,11 @@ class GameViewActivity : AppCompatActivity() {
         drawBoard()
     }
 
-    private fun createPromotionPopupWindow(){
+    private fun createPromotionPopupWindow(previousTile: Tile?){
         val autoQueenPromotion = prefs.getBoolean("autoqueenpromotion", true)
 
         if(autoQueenPromotion){
-            managePromotion(1)
+            managePromotion(1, previousTile)
         } else{
             val factory = LayoutInflater.from(this)
             val promotionDialogView: View = factory.inflate(R.layout.dialog_promote, null)
@@ -430,31 +437,52 @@ class GameViewActivity : AppCompatActivity() {
 
             promotionDialogView.findViewById<ImageButton>(R.id.promote_queen)
                 .setOnClickListener {
-                    managePromotion(1)
+                    managePromotion(1, previousTile)
                     promoteDialog?.dismiss()
                 }
             promotionDialogView.findViewById<ImageButton>(R.id.promote_rook)
                 .setOnClickListener {
-                    managePromotion(2)
+                    managePromotion(2, previousTile)
                     promoteDialog?.dismiss()
                 }
             promotionDialogView.findViewById<ImageButton>(R.id.promote_bishop)
                 .setOnClickListener {
-                    managePromotion(3)
+                    managePromotion(3, previousTile)
                     promoteDialog?.dismiss()
                 }
             promotionDialogView.findViewById<ImageButton>(R.id.promote_knight)
                 .setOnClickListener {
-                    managePromotion(4)
+                    managePromotion(4, previousTile)
                     promoteDialog?.dismiss()
                 }
             promoteDialog!!.show()
         }
     }
 
-    private fun managePromotion(id: Int){
+    private fun managePromotion(id: Int, oldPosition: Tile?){
 
         board.promotePawnTo(id, previouslySelectedTile, lastStep)
+
+        //We need to log promotion as well, due to a multiplayer issue
+        when (id) {
+            //Queen
+            1 -> {
+                steps.add("Q" + oldPosition?.tileName + previouslySelectedTile?.tileName)
+            }
+            //Rook
+            2 -> {
+                steps.add("R" + oldPosition?.tileName + previouslySelectedTile?.tileName)
+            }
+            //Bishop
+            3 -> {
+                steps.add("B" + oldPosition?.tileName + previouslySelectedTile?.tileName)
+            }
+            //Knight
+            4 -> {
+                steps.add("H" + oldPosition?.tileName + previouslySelectedTile?.tileName)
+            }
+        }
+        sendBoard()
 
         drawBoard()
     }
@@ -690,6 +718,8 @@ class GameViewActivity : AppCompatActivity() {
                 }
             }
         }
+
+        checkForCheck(board, false)
     }
 
 
@@ -857,7 +887,7 @@ class GameViewActivity : AppCompatActivity() {
 //        if(oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.player != opponentNumber){
 //            return oldBoard
 //        }
-        var oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece
+        var oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.copy()
         var player = oldPiece?.player
 
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null

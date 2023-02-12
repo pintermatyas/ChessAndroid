@@ -162,32 +162,64 @@ class Board {
     fun manageCastling(tileOfKing: Tile){
         when (tileOfKing.tileName) {
             "c1" -> {
+                //Remove old rook from board and place it on its new field
                 tiles[0]?.chessPiece = null
                 tiles[0]?.isEmpty = true
                 tiles[3] = Tile(3,0)
                 tiles[3]?.chessPiece = Rook(3,0,0)
                 tiles[3]?.isEmpty = false
+
+                //Remove old king from board and place it on its new field
+                tiles[4]?.chessPiece = null
+                tiles[4]?.isEmpty = true
+                tiles[2] = Tile(2,0)
+                tiles[2]?.chessPiece = King(2,0,0)
+                tiles[2]?.isEmpty = false
             }
             "g1" -> {
+                //Remove old rook from board and place it on its new field
                 tiles[7]?.chessPiece = null
                 tiles[7]?.isEmpty = true
                 tiles[5] = Tile(5,0)
                 tiles[5]?.chessPiece = Rook(5,0,0)
                 tiles[5]?.isEmpty = false
+
+                //Remove old king from board and place it on its new field
+                tiles[4]?.chessPiece = null
+                tiles[4]?.isEmpty = true
+                tiles[6] = Tile(6,0)
+                tiles[6]?.chessPiece = King(6,0,0)
+                tiles[6]?.isEmpty = false
             }
             "c8" -> {
+                //Remove old rook from board and place it on its new field
                 tiles[56]?.chessPiece = null
                 tiles[56]?.isEmpty = true
                 tiles[59] = Tile(3,7)
                 tiles[59]?.chessPiece = Rook(3,7,1)
                 tiles[59]?.isEmpty = false
+
+                //Remove old king from board and place it on its new field
+                tiles[60]?.chessPiece = null
+                tiles[60]?.isEmpty = true
+                tiles[58] = Tile(2,7)
+                tiles[58]?.chessPiece = King(2,7,1)
+                tiles[58]?.isEmpty = false
             }
             "g8" -> {
+                //Remove old rook from board and place it on its new field
                 tiles[63]?.chessPiece = null
                 tiles[63]?.isEmpty = true
                 tiles[61] = Tile(5,7)
                 tiles[61]?.chessPiece = Rook(5,7,1)
                 tiles[61]?.isEmpty = false
+
+                //Remove old king from board and place it on its new field
+                tiles[60]?.chessPiece = null
+                tiles[60]?.isEmpty = true
+                tiles[62] = Tile(6,7)
+                tiles[62]?.chessPiece = King(6,7,1)
+                tiles[62]?.isEmpty = false
             }
         }
     }

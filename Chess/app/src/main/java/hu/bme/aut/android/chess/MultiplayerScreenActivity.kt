@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.preference.PreferenceManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -15,7 +14,7 @@ import kotlin.properties.Delegates
 class MultiplayerScreenActivity : AppCompatActivity() {
     var running by Delegates.notNull<Boolean>()
     var username: String = ""
-    var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+    private var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
     var message = database?.reference
     var onlinePlayers = ArrayList<String>()
     var logSize: Int = 0
@@ -39,7 +38,6 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 
                     val map = dataSnapshot.value as Map<*, *>?
                     onlinePlayers.clear()
-                    var state: String = ""
                     opponent = ""
 
                     val oldLog = log
@@ -60,7 +58,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 //                }
 
 
-                    state = updateOnlinePlayers(map)
+                    updateOnlinePlayers(map)
 
 
 
@@ -71,9 +69,8 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     }
 
                     var existingGame = false
-                    var game = ""
 
-                    game = log.last().toString()
+                    var game: String = log.last().toString()
 
 
                     Log.d("GAME STATUS", game)
@@ -81,29 +78,29 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     if(game == "entered"){
                         updateOnlinePlayers(map)
 //                        Log.d("LOGGING STATUS", "LAST MESSAGE IS ENTERED")
-                        log = map!!["log"] as ArrayList<*>
+                        log = map["log"] as ArrayList<*>
                         logSize = log.size
                         createPairing(map)
 //                    return
                     }
 
-                    var games: HashMap<*, *> = map["games"] as HashMap<*,*>
-                    var gameKeys = games.keys
+                    val games: HashMap<*, *> = map["games"] as HashMap<*,*>
+                    val gameKeys = games.keys
 
                     for(k in gameKeys){
                         if(k.toString().contains(username)){
                             existingGame = true
-                            game = k.toString()
+                            k.toString()
                         }
                     }
 
 
                     game = log.last().toString()
 
-                    log = map!!["log"] as ArrayList<*>
+                    log = map["log"] as ArrayList<*>
                     logSize = log.size
 
-                    Log.d("Connection status", "EXISTING: ${existingGame.toString()}, CONNECTED: ${connected.toString()}, ONLINE PLAYERS: ${onlinePlayers.toString()}")
+                    Log.d("Connection status", "EXISTING: $existingGame, CONNECTED: ${connected}, ONLINE PLAYERS: $onlinePlayers")
 
                     if(existingGame && !connected && game != "entered"){
 
@@ -146,7 +143,6 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                         this@MultiplayerScreenActivity.finish()
                         startActivity(intent)
                         finish()
-                        existingGame = false
                         running = false
 
                         connected = true
@@ -154,11 +150,11 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     }
 
                     else if(!logged && !(game.contains(",$username") || (game.contains("$username,")))){
-                        log = map!!["log"] as ArrayList<*>
+                        log = map["log"] as ArrayList<*>
                         logSize = log.size
                         Log.d("LOGGING STATUS", "NOT LOGGED, NO GAME")
 
-                        state = updateOnlinePlayers(map)
+                        updateOnlinePlayers(map)
 
                         createPairing(map)
                     }
@@ -212,18 +208,18 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         Log.d("MATCH LOGGED AT $logSize", "$opponent,$username")
         message!!.child("log").child(logSize.toString()).setValue("$opponent,$username")
         logged = true
-        Log.d("OPPONENT FOR PLAYER $username", "$opponent")
+        Log.d("OPPONENT FOR PLAYER $username", opponent)
         return opponent
     }
 
     fun updateOnlinePlayers(map: Map<*,*>): String{
-        var state: String = ""
-        if (map.get("players") is HashMap<*, *>) {
-            Log.d("PLAYER STATUSES", "${map.get("players")}")
+        var state = ""
+        if (map["players"] is HashMap<*, *>) {
+            Log.d("PLAYER STATUSES", "${map["players"]}")
             val entries: HashMap<*, *> = map["players"] as HashMap<*, *>
             val keys = entries.keys.toMutableList()
             val values = entries.values.toMutableList()
-            for ((idx, e) in keys.withIndex()) {
+            for ((idx, _) in keys.withIndex()) {
                 if(keys[idx].toString() == username){
                     state = values[idx].toString()
                 }

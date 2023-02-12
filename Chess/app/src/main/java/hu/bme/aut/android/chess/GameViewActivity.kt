@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
@@ -20,11 +19,6 @@ import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Pieces.*
 import hu.bme.aut.android.chess.Board.Tile
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.select.Elements
-import java.net.URL
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.abs
@@ -65,13 +59,12 @@ class GameViewActivity : AppCompatActivity() {
     private var username: String = ""
 
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MATCH ENTERED")
         multiplayer = intent.extras!!.getBoolean("multiplayer")
         opponent = intent.extras!!.getString("opponent").toString()
         match = intent.extras!!.getString("match").toString()
+
 //        toast(match)
 
         //Toast.makeText(this, "opponent: $opponent", Toast.LENGTH_SHORT).show()
@@ -112,7 +105,7 @@ class GameViewActivity : AppCompatActivity() {
 
 //                    toast(match)
 
-                    var games = map!!["games"] as HashMap<*, *>
+                    val games = map!!["games"] as HashMap<*, *>
 
                     if(games[match].toString() == "ended"){
                         finish()
@@ -122,10 +115,10 @@ class GameViewActivity : AppCompatActivity() {
                     if(games[match] == null){
                         return
                     }
-                    var game = games[match]!! as HashMap<*, *>
+                    val game = games[match]!! as HashMap<*, *>
 
                     if(game[opponent].toString() == "entered" && game[username].toString() == "entered" && !enterLogged){
-                        val log = map!!["log"] as ArrayList<*>
+                        val log = map["log"] as ArrayList<*>
                         message.child("log").child((log.size+1).toString()).setValue("entered")
                         enterLogged = true
 
@@ -186,11 +179,11 @@ class GameViewActivity : AppCompatActivity() {
                             init = false
                         }
                     }
-                    var recentMove = game[opponent].toString()
+                    val recentMove = game[opponent].toString()
                     if(recentMove == opponentMove){
                         return
                     } else opponentMove = recentMove
-                    var tempBoard = interpretMessage(opponentMove)
+                    val tempBoard = interpretMessage(opponentMove)
 //                    changeNextPlayer()
                     board = tempBoard.copy()
                     drawBoard()
@@ -405,11 +398,29 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     @SuppressLint("PrivateResource")
-    private fun manageCastling(currentTile: Tile){
-        board.manageCastling(currentTile)
+    private fun manageCastling(castlingTile: Tile){
+        board.manageCastling(castlingTile)
+
+        when (castlingTile.tileName) {
+            "g1" -> {
+                steps.add("O-O ${castlingTile.tileName}")
+            }
+            "g8" -> {
+                steps.add("O-O ${castlingTile.tileName}")
+            }
+            "c8" -> {
+                steps.add("O-O-O ${castlingTile.tileName}")
+            }
+            "c1" -> {
+                steps.add("O-O-O ${castlingTile.tileName}")
+            }
+        }
+
         drawBoard()
     }
 
+
+    //In case auto-queen promotion is turned off, it creates a pop-up dialog window, on which you can choose the promoted piece.
     private fun createPromotionPopupWindow(previousTile: Tile?){
         val autoQueenPromotion = prefs.getBoolean("autoqueenpromotion", true)
 
@@ -844,7 +855,7 @@ class GameViewActivity : AppCompatActivity() {
         drawBoard()
     }
 
-    fun sendBoard(): Boolean{
+    private fun sendBoard(): Boolean{
         username = prefs.getString("username", "").toString()
 
         message.child("games").child(match).child(username).setValue(steps.last())
@@ -854,27 +865,63 @@ class GameViewActivity : AppCompatActivity() {
         return true
     }
 
-    fun toast(string: String){
-        Toast.makeText(this, string, Toast.LENGTH_LONG).show()
-    }
-
     fun interpretMessage(message: String): Board{
 
-        var oldBoard = board.copy()
+        val oldBoard = board.copy()
 
         username = prefs.getString("username", "").toString()
 
         if(message.contains("entered") || message.contains("left") || message.contains("idle") || message == "null" || message == "") return oldBoard
 
-        var inCharacters = message.toCharArray()
+        //Short castling
+        if(message.contains("O-O ")){
+            val lastStepString = message.substring(message.length-2)
+//            var tile = Tile(0,0)
+
+            for(t in board.tiles){
+                if(t?.tileName == lastStepString){
+//                    tile = t.copy()
+                    Log.d(TAG, "Castling on $lastStepString")
+                    manageCastling(t)
+                }
+            }
+
+            changeNextPlayer()
+            drawBoard()
+
+            return board
+        }
+        //Long castling
+        else if(message.contains("O-O-O ")){
+            val lastStepString = steps.last().substring(steps.last().length-2)
+//            var tile = Tile(0,0)
+
+            for(t in board.tiles){
+                if(t?.tileName == lastStepString){
+//                    tile = t.copy()
+                    Log.d(TAG, "Castling on $lastStepString")
+                    manageCastling(t)
+                }
+            }
+
+
+
+            changeNextPlayer()
+            drawBoard()
+
+            return board
+        }
+
+
+        val inCharacters = message.toCharArray()
         var piece: ChessPiece? = null
-        var prevTileCol: Int = (inCharacters[1] - 'a')
+        val prevTileCol: Int = (inCharacters[1] - 'a')
 
-        Log.d("MESSAGE", "$message")
+        Log.d("MESSAGE", message)
 
-        var prevTileRow: Int = inCharacters[2].digitToInt() - 1
-        var currentTileCol: Int = (inCharacters[3] - 'a')
-        var currentTileRow: Int = inCharacters[4].digitToInt() - 1
+        val prevTileRow: Int = inCharacters[2].digitToInt() - 1
+        val currentTileCol: Int = (inCharacters[3] - 'a')
+        val currentTileRow: Int = inCharacters[4].digitToInt() - 1
 
 //        var opponentNumber = -1
 //        if(whitePlayer == username){
@@ -887,7 +934,7 @@ class GameViewActivity : AppCompatActivity() {
 //        if(oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.player != opponentNumber){
 //            return oldBoard
 //        }
-        var oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.copy()
+        val oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.copy()
         var player = oldPiece?.player
 
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
@@ -934,27 +981,5 @@ class GameViewActivity : AppCompatActivity() {
 
         return oldBoard
 
-    }
-
-    @Throws(Exception::class)
-    private fun getTime(): Long {
-        val url = "https://time.is/Unix_time_now"
-        val doc: Document = Jsoup.parse(URL(url).openStream(), "UTF-8", url)
-        val tags = arrayOf(
-            "div[id=time_section]",
-            "div[id=clock0_bg]"
-        )
-        var elements: Elements = doc.select(tags[0])
-        for (i in tags.indices) {
-            elements = elements.select(tags[i])
-        }
-        return elements.text().toLong()
-    }
-
-    private fun getDate(time: Long): String? {
-        val cal = Calendar.getInstance(Locale.ENGLISH)
-        cal.timeInMillis = time * 1000
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS", Locale.ENGLISH)
-        return dateFormat.format(cal.time)
     }
 }

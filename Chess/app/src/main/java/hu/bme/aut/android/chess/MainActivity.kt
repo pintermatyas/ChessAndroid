@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+        binding.root.setBackgroundResource(R.drawable.background)
         setContentView(binding.root)
 
         binding.startbtn.setOnClickListener {

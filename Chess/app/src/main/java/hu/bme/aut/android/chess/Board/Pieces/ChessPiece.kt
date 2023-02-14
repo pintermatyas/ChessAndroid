@@ -24,4 +24,19 @@ abstract class ChessPiece(x: Int, y: Int, playerId: Int) {
     abstract fun isPathBlockedToTile(tile: Tile, board: Board): Boolean
 
     abstract fun isAttackingTile(tile: Tile, board: Board): Boolean
+
+    override fun equals(other: Any?): Boolean {
+        if(other !is ChessPiece) return false
+
+        if(posX == other.posX && posY == other.posY){
+            if(this.javaClass == other.javaClass){
+                if(firstPosX == other.firstPosX && firstPosY == other.firstPosY){
+                    if(player == other.player){
+                        return true
+                    }
+                }
+            }
+        }
+        return super.equals(other)
+    }
 }

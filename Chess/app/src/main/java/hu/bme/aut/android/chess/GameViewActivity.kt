@@ -30,8 +30,9 @@ class GameViewActivity : AppCompatActivity() {
 
     private var buttons =  ArrayList<ImageButton>()
     private var buttonNames = ArrayList<String>()
+
     private var backup = ArrayList<Board>()
-    private var steps = ArrayList<String>()
+    private var steps = ArrayList<String>() //List of steps
 
 
     private var previouslySelectedPiece: ChessPiece? = null
@@ -42,13 +43,14 @@ class GameViewActivity : AppCompatActivity() {
     private var latestPromote: ChessPiece? = null //Latest promoted chess piece
     private var lastStep: Int = 0 //Player with the latest step
     private var aiLevel = 0 //0: disabled
-    private lateinit var prefs: SharedPreferences
+    private lateinit var prefs: SharedPreferences //Settings
 
+    //Required for multiplayer
     private var multiplayer = false
-    private var opponent = ""
-    private var match = ""
-    var whitePlayer = ""
-    var blackPlayer = ""
+    private var opponent = "" // Username of opponent
+    private var match = "" // Name of match
+    var whitePlayer = "" // Username of white player
+    var blackPlayer = "" // Username of black player
     var opponentMove = ""
     var enterLogged = false
     var flippedBoard = false
@@ -247,7 +249,7 @@ class GameViewActivity : AppCompatActivity() {
         var step = false
         var prevTile: Tile? = null
 
-        if(previouslySelectedTile?.tileName == currentTile?.tileName && steps.last().substring(steps.last().length-2) != currentTile!!.tileName){
+        if( previouslySelectedTile?.tileName == currentTile?.tileName && steps.size == 0 || previouslySelectedTile?.tileName == currentTile?.tileName && steps.last().substring(steps.last().length-2) != currentTile!!.tileName){
             drawBoard()
             previouslySelectedTile = null
             previouslySelectedPiece = null

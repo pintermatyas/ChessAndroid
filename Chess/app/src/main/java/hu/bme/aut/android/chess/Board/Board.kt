@@ -231,4 +231,15 @@ class Board {
         }
         return newBoard
     }
+
+    override fun equals(other: Any?): Boolean {
+        if(other !is Board) return false
+        var allEquals: Boolean = true
+        for(i in 0..63){
+            if(tiles[i]?.chessPiece?.equals(other.tiles[i]?.chessPiece) == false){
+                allEquals = false
+            }
+        }
+        return allEquals
+    }
 }

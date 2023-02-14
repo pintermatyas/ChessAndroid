@@ -500,7 +500,7 @@ class GameViewActivity : AppCompatActivity() {
         drawBoard()
     }
 
-    private fun checkForCheck(b: Board, findingCheckMate: Boolean): Int{
+    fun checkForCheck(b: Board, findingCheckMate: Boolean): Int{
         var checkByWhite = false
         var checkByBlack = false
 
@@ -521,7 +521,7 @@ class GameViewActivity : AppCompatActivity() {
         else -1
     }
 
-    private fun checkForCheckMate(b: Board): Boolean{
+    fun checkForCheckMate(b: Board): Boolean{
         val check = checkForCheck(b, true)
         var checkmate = true
         if(check!=-1 || check != 2){
@@ -821,7 +821,7 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     //Completely resets the board and everything related to it
-    private fun resetBoard(){
+    fun resetBoard(){
         board = Board()
         if(currentPlayer == 1) {
             changeNextPlayer()
@@ -840,7 +840,7 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     //Restores the board one move before current state
-    private fun revert(){
+    fun revert(){
 //        for(b in buttons){
 //            b.rotation = 180F
 //        }

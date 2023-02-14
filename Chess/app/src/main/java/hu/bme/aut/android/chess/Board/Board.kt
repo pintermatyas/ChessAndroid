@@ -232,6 +232,13 @@ class Board {
         return newBoard
     }
 
+    fun empty(){
+        for(t in tiles){
+            t?.chessPiece = null
+            t?.isEmpty = true
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         if(other !is Board) return false
         var allEquals: Boolean = true

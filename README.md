@@ -1,7 +1,7 @@
 # Chess for Android mobile devices
 ## Main Menu
 You can start an offline game, enter settings and enter the multiplayer menu (Still work in progress) 
-![](Documentation/Screenshot_20230209_094725_Chess.jpg)
+![](Documentation/ui_2-0.jpg)
 ## Settings menu
 You can edit basic settings for the game, such as timer, auto-queen promotion and username for multiplayer games.
 ![](Documentation/Screenshot_20230209_094559_Chess.jpg)

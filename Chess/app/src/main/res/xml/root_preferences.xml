@@ -7,10 +7,10 @@
             app:title="Username"
             app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
-            app:key="opponent"
-            app:title="Opponent"
-            app:useSimpleSummaryProvider="true" />
+<!--        <EditTextPreference-->
+<!--            app:key="opponent"-->
+<!--            app:title="Opponent"-->
+<!--            app:useSimpleSummaryProvider="true" />-->
 
     </PreferenceCategory>
 
@@ -63,13 +63,13 @@
     <PreferenceCategory app:title="Gameplay">
 
 
-        <ListPreference
-            app:defaultValue="10"
-            app:entries="@array/timer"
-            app:entryValues="@array/timer_values"
-            app:key="timer"
-            app:title="Time until game over"
-            app:useSimpleSummaryProvider="true" />
+<!--        <ListPreference-->
+<!--            app:defaultValue="10"-->
+<!--            app:entries="@array/timer"-->
+<!--            app:entryValues="@array/timer_values"-->
+<!--            app:key="timer"-->
+<!--            app:title="Time until game over"-->
+<!--            app:useSimpleSummaryProvider="true" />-->
 
         <!--below switch pref is use for enable stats option-->
         <SwitchPreference
@@ -81,10 +81,15 @@
 
         <!--below switch pref is use for enable stats option-->
         <SwitchPreference
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="multiplayer"
             app:title="Multiplayer"/>
 
     </PreferenceCategory>
+
+    <Preference
+        app:title="Reset all data"
+        app:key="reset_data"/>
+
 
 </PreferenceScreen>

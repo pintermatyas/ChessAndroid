@@ -232,10 +232,95 @@ class Board {
         return newBoard
     }
 
-    fun empty(){
+    fun emptyBoard(){
         for(t in tiles){
             t?.chessPiece = null
             t?.isEmpty = true
+        }
+    }
+
+    override fun toString(): String {
+        var boardString = ""
+        for(t in tiles){
+            if(t?.chessPiece == null){
+                boardString+="0"
+            }
+            else if(t.chessPiece!!.player == 0){
+                boardString += t.chessPiece!!.shortenedName.lowercase()
+            }
+            else if(t.chessPiece!!.player == 1){
+                boardString += t.chessPiece!!.shortenedName.uppercase()
+            }
+        }
+        return boardString
+    }
+
+    fun constructBoardFromString(boardString: String){
+        if(boardString.length != 64) return
+
+//        emptyBoard()
+
+        for(i in 0..63){
+            var char = boardString.get(i)
+            var xCoordinate = i%8
+            var yCoordinate = i/8
+
+            tiles[i] = Tile(xCoordinate, yCoordinate)
+
+            if(char == '0'){
+                tiles[i]?.isEmpty = true
+                tiles[i]?.chessPiece = null
+            }
+            else{
+                tiles[i]?.isEmpty = false
+            }
+
+
+            var player: Int
+            if(char.isLowerCase()){ // Player is white
+                player = 0
+            }
+            else {
+                player = 1
+            }
+
+
+            when(char.lowercase()){
+                // Bishop
+                "b" -> {
+                    tiles[i]?.chessPiece = Bishop(xCoordinate, yCoordinate, player)
+                }
+                // King
+                "k" -> {
+                    tiles[i]?.chessPiece = King(xCoordinate, yCoordinate, player)
+                }
+                // Knight
+                "h" -> {
+                    tiles[i]?.chessPiece = Knight(xCoordinate, yCoordinate, player)
+                }
+                // Pawn
+                "p" -> {
+                    if(player == 0){
+                        tiles[i]?.chessPiece = Pawn(xCoordinate, 1, player)
+                        tiles[i]?.chessPiece?.posY = yCoordinate
+                    }
+                    else{
+                        tiles[i]?.chessPiece = Pawn(xCoordinate, 6, player)
+                        tiles[i]?.chessPiece?.posY = yCoordinate
+                    }
+                }
+                // Queen
+                "q" -> {
+                    tiles[i]?.chessPiece = Queen(xCoordinate, yCoordinate, player)
+                }
+                // Rook
+                "r" -> {
+                    tiles[i]?.chessPiece = Rook(xCoordinate, yCoordinate, player)
+                }
+            }
+
+//            tiles[i]?.isEmpty = false
+
         }
     }
 

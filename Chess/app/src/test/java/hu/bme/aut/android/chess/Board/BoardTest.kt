@@ -1,7 +1,5 @@
 package hu.bme.aut.android.chess.Board
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import hu.bme.aut.android.chess.Board.Pieces.King
 import hu.bme.aut.android.chess.Board.Pieces.Pawn
 import hu.bme.aut.android.chess.Board.Pieces.Queen
@@ -47,7 +45,7 @@ class BoardTest {
     fun testCheck(){
         var testBoard = Board()
 
-        testBoard.empty()
+        testBoard.emptyBoard()
 
         for(t in testBoard.tiles){
             assertEquals(null, t?.chessPiece)

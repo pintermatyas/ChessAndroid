@@ -6,10 +6,12 @@ import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
@@ -18,9 +20,12 @@ import com.google.firebase.database.*
 import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Pieces.*
 import hu.bme.aut.android.chess.Board.Tile
+import hu.bme.aut.android.chess.data.BoardData
+import hu.bme.aut.android.chess.data.GameDatabase
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.concurrent.thread
 import kotlin.math.abs
 
 
@@ -56,9 +61,11 @@ class GameViewActivity : AppCompatActivity() {
     var flippedBoard = false
 
     //firebase
-    private lateinit var database: FirebaseDatabase
-    private lateinit var message: DatabaseReference
+    private lateinit var firebaseDatabase: FirebaseDatabase
+    private lateinit var databaseReference: DatabaseReference
     private var username: String = ""
+
+    private lateinit var localDatabase: GameDatabase
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,9 +88,11 @@ class GameViewActivity : AppCompatActivity() {
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
 //        multiplayer = prefs.getBoolean("multiplayer", true)
 
+        localDatabase = GameDatabase.getDatabase(this)
 
-        database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
-        message = database.reference
+
+        firebaseDatabase = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+        databaseReference = firebaseDatabase.reference
         username = prefs.getString("username", "").toString()
 
         if(multiplayer) {
@@ -92,7 +101,8 @@ class GameViewActivity : AppCompatActivity() {
             binding.player2indicator.isVisible = true
             binding.player2indicator.text = opponent
             binding.settingsbtn.isVisible = false
-            message.child("players").child(username).setValue("unavailable")
+            databaseReference.child("players").child(username).setValue("unavailable")
+            binding.loadlatestbtn.isVisible = false
         } else{
             binding.fabBack.isVisible = true
             binding.resetbtn.isVisible = true
@@ -100,7 +110,7 @@ class GameViewActivity : AppCompatActivity() {
         }
 
 
-        message.addValueEventListener(object : ValueEventListener {
+        databaseReference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (multiplayer) {
                     val map = dataSnapshot.value as Map<*, *>?
@@ -121,7 +131,7 @@ class GameViewActivity : AppCompatActivity() {
 
                     if(game[opponent].toString() == "entered" && game[username].toString() == "entered" && !enterLogged){
                         val log = map["log"] as ArrayList<*>
-                        message.child("log").child((log.size+1).toString()).setValue("entered")
+                        databaseReference.child("log").child((log.size+1).toString()).setValue("entered")
                         enterLogged = true
 
                     }
@@ -129,10 +139,10 @@ class GameViewActivity : AppCompatActivity() {
 
                     if(game[opponent].toString() == "left"){
 //                        toast("Opponent left the game")
-                        message.child("games").child(match).child(opponent).setValue("idle")
-                        message.child("games").child(match).child(username).setValue("idle")
-                        message.child("games").child(match).setValue("ended")
-                        message.child("games").child(match).removeValue()
+                        databaseReference.child("games").child(match).child(opponent).setValue("idle")
+                        databaseReference.child("games").child(match).child(username).setValue("idle")
+                        databaseReference.child("games").child(match).setValue("ended")
+                        databaseReference.child("games").child(match).removeValue()
                         Log.d("LOGGING OFF", "$opponent left")
                         finish()
                         return
@@ -148,11 +158,11 @@ class GameViewActivity : AppCompatActivity() {
                     if(whitePlayer == "" && blackPlayer == ""){
                         val rand = Calendar.getInstance().timeInMillis % 2
                         if(rand == 0L){
-                            message.child("games").child(match).child("white").setValue(opponent)
-                            message.child("games").child(match).child("black").setValue(username)
+                            databaseReference.child("games").child(match).child("white").setValue(opponent)
+                            databaseReference.child("games").child(match).child("black").setValue(username)
                             whitePlayer = game["white"].toString()
                             blackPlayer = game["black"].toString()
-                            message.child("games").child(match).child("next").setValue(whitePlayer)
+                            databaseReference.child("games").child(match).child("next").setValue(whitePlayer)
                         }
                     }
 
@@ -167,7 +177,7 @@ class GameViewActivity : AppCompatActivity() {
                     }
 
                     if(init){
-                        message.child("games").child(match).child("next").setValue(whitePlayer)
+                        databaseReference.child("games").child(match).child("next").setValue(whitePlayer)
                         if(blackPlayer == username){
                             buttonNames.reverse()
                             for((idx, b) in buttons.withIndex()) {
@@ -207,27 +217,40 @@ class GameViewActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         if(multiplayer){
-            message.child("games").child(match).child(username).setValue("left")
-            message.child("games").child(match).setValue("ended")
-            message.child("games").child(match).removeValue()
+            databaseReference.child("games").child(match).child(username).setValue("left")
+            databaseReference.child("games").child(match).setValue("ended")
+            databaseReference.child("games").child(match).removeValue()
         }
-        message.child("players").child(username).setValue("offline")
+        databaseReference.child("players").child(username).setValue("offline")
+
     }
 
     override fun onStop() {
         super.onStop()
         if(multiplayer){
-            message.child("games").child(match).setValue("ended")
-            message.child("games").child(match).child(username).setValue("left")
-            message.child("games").child(match).removeValue()
+            databaseReference.child("games").child(match).setValue("ended")
+            databaseReference.child("games").child(match).child(username).setValue("left")
+            databaseReference.child("games").child(match).removeValue()
+        }
+
+        if(!multiplayer){
+            val boardState = board.toString()
+
+            var save = BoardData(state=boardState, nextPlayer = currentPlayer, multiplayer = multiplayer)
+
+            thread{
+                val insertId = localDatabase.BoardDataDAO().insert(save)
+                save.id = insertId
+//            lastId = insertId.toInt()
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
         if(multiplayer){
-            message.child("games").child(match).child(username).setValue("entered")
-            message.child("players").child(username).setValue("unavailable")
+            databaseReference.child("games").child(match).child(username).setValue("entered")
+            databaseReference.child("players").child(username).setValue("unavailable")
         }
     }
 
@@ -399,7 +422,7 @@ class GameViewActivity : AppCompatActivity() {
 
     }
 
-    @SuppressLint("PrivateResource")
+
     private fun manageCastling(castlingTile: Tile){
         board.manageCastling(castlingTile)
 
@@ -687,10 +710,26 @@ class GameViewActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.loadlatestbtn.setOnClickListener {
+            thread {
+                val items = localDatabase.BoardDataDAO().getAll()
+                if(items.isEmpty()) {
+                    return@thread
+                }
+                board.constructBoardFromString(items.last().state)
+                currentPlayer = items.last().nextPlayer
+                runOnUiThread {
+                    drawBoard()
+                }
+            }
+        }
+
         binding.fabBack.setOnClickListener {
             revert()
         }
         binding.resetbtn.setOnClickListener {
+//            board.constructBoardFromString("000000000000000000000000000000000000000000000000000q00000PPPPP00")
+//            drawBoard()
             resetBoard()
         }
     }
@@ -860,8 +899,8 @@ class GameViewActivity : AppCompatActivity() {
     private fun sendBoard(): Boolean{
         username = prefs.getString("username", "").toString()
 
-        message.child("games").child(match).child(username).setValue(steps.last())
-        message.child("games").child(match).child("next").setValue(opponent)
+        databaseReference.child("games").child(match).child(username).setValue(steps.last())
+        databaseReference.child("games").child(match).child("next").setValue(opponent)
         changeNextPlayer()
 
         return true

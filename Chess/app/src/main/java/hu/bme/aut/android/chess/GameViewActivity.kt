@@ -6,12 +6,10 @@ import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
@@ -567,21 +565,45 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     fun checkForCheckMate(b: Board): Boolean{
-        val check = checkForCheck(b, true)
+        val checkByPlayer = checkForCheck(b, true)
         var checkmate = true
-        if(check!=-1 || check != 2){
-            val checkedPlayer = if(check==0) 1 else 0
+        if(checkByPlayer != -1 || checkByPlayer != 2){
+            val checkedPlayer = if(checkByPlayer==0) 1 else 0
             for(t in b.tiles){
                 if(t?.chessPiece?.player != checkedPlayer) continue
                 val temp = b.copy()
                 for(tempTiles in temp.tiles){
                     val tempBoard = temp.copy()
-                    tempBoard.step(tempBoard.tiles[t.x_coord + t.y_coord*8]!!, tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!)
-                    if(checkForCheck(tempBoard, true) != check) checkmate = false
+
+                    val tempBoardTileOne = tempBoard.tiles[t!!.x_coord + t.y_coord*8]!!.copy()
+                    val tempBoardPieceOne = tempBoard.tiles[t!!.x_coord + t.y_coord*8]!!.chessPiece?.copy()
+                    val tempBoardTileTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]?.copy()
+                    val tempBoardPieceTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece?.copy()
+
+                    val validMove = tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!, tempBoard) == true
+//                    if(tempBoardPieceOne?.checkIfValidMove(tempBoardTileTwo!!, tempBoard) == true){
+//                        continue
+//                    }
+//                    if(tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!, tempBoard) == true){
+
+//                        tempBoard.step(tempBoard.tiles[t.x_coord + t.y_coord*8]!!, tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!)
+                        tempBoardPieceOne?.posX = tempTiles!!.x_coord
+                        tempBoardPieceOne?.posY = tempTiles!!.y_coord
+                        tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece = tempBoardPieceOne
+                        tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.isEmpty = false
+                        tempBoard.tiles[t.x_coord + t.y_coord*8]!!.isEmpty = true
+                        if(listOf(checkedPlayer, -1).contains(checkForCheck(tempBoard, true)) && validMove) {
+//                            Log.d("Prevent checkmate:", "${tempBoardPieceOne?.player} with ${tempBoardPieceOne?.shortenedName} from ${tempBoardTileOne.tileName} to ${tempBoardTileTwo?.tileName}")
+                            checkmate = false
+                        }
+//                    }
+
 
                 }
 
             }
+        } else if(checkByPlayer == -1 || checkByPlayer == 2){
+            return false
         }
         return checkmate
     }
@@ -999,6 +1021,8 @@ class GameViewActivity : AppCompatActivity() {
 //        if(oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.player != opponentNumber){
 //            return oldBoard
 //        }
+        val oldFirstX = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.firstPosX
+        val oldFirstY = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.firstPosY
         val oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.copy()
         var player = oldPiece?.player
 
@@ -1024,15 +1048,23 @@ class GameViewActivity : AppCompatActivity() {
         }
         else if(inCharacters[0] == 'P'){
             piece = Pawn(currentTileCol, currentTileRow, player)
+            piece.firstPosX = oldFirstX!!
+            piece.firstPosY = oldFirstY!!
         }
         else if(inCharacters[0] == 'B'){
             piece = Bishop(currentTileCol, currentTileRow, player)
         }
 
 
-        piece!!.firstPosX = oldPiece!!.firstPosX
-        piece.firstPosY = oldPiece.firstPosY
-        piece.shortenedName = oldPiece.shortenedName
+//        piece!!.firstPosX = oldPiece!!.firstPosX
+//        piece.firstPosY = oldPiece.firstPosY
+
+
+
+        piece!!.firstPosX = oldFirstX!!
+        piece.firstPosY = oldFirstY!!
+
+        piece.shortenedName = oldPiece!!.shortenedName
         piece.imagePath = oldPiece.imagePath
         piece.stepCount = oldPiece.stepCount
         piece.canPathBeBlocked = oldPiece.canPathBeBlocked

@@ -1,5 +1,6 @@
 package hu.bme.aut.android.chess.Board.Pieces
 
+import android.util.Log
 import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
@@ -23,6 +24,7 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     }
 
     override fun checkIfValidMove(tile: Tile, board: Board): Boolean {
+//        Log.d("Checking if move valid:", "$player with $shortenedName from $posX,$posY to ${tile.tileName}")
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }

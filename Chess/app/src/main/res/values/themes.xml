@@ -17,4 +17,13 @@
     <style name="Button.Gray" parent="ThemeOverlay.AppCompat">
         <item name="colorAccent">@android:color/darker_gray</item>
     </style>
+
+    <style name="Theme.Chess.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Chess.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.Chess.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

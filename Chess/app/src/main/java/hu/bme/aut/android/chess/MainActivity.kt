@@ -36,6 +36,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {  }
             startActivity(intent)
         }
+        binding.gameLogBtn.setOnClickListener {
+            val intent = Intent(this@MainActivity, ListActivity::class.java).apply {  }
+            startActivity(intent)
+        }
 
 
         binding.multiplayer.setOnClickListener {

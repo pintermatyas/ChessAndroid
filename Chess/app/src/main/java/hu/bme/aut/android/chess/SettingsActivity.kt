@@ -39,7 +39,8 @@ class SettingsActivity : AppCompatActivity() {
                 reset()
             }
         }
-        fun reset(): Boolean {
+
+        private fun reset(): Boolean {
             thread {
                 localDatabase.BoardDataDAO().nukeTable()
             }

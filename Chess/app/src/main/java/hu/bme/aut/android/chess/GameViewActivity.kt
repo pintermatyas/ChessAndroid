@@ -23,6 +23,8 @@ import hu.bme.aut.android.chess.Board.Tile
 import hu.bme.aut.android.chess.data.BoardData
 import hu.bme.aut.android.chess.data.GameDatabase
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
@@ -67,9 +69,19 @@ class GameViewActivity : AppCompatActivity() {
 
     private lateinit var localDatabase: GameDatabase
 
+    var replay = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MATCH ENTERED")
+        board = Board()
+
+        if(intent.extras!!.getBoolean("replay")){
+            replay = true
+            board.constructBoardFromString(intent.extras!!.getString("state")!!)
+            currentPlayer = intent.extras!!.getInt("nextPlayer")
+        }
+
         multiplayer = intent.extras!!.getBoolean("multiplayer")
         opponent = intent.extras!!.getString("opponent").toString()
         match = intent.extras!!.getString("match").toString()
@@ -84,7 +96,6 @@ class GameViewActivity : AppCompatActivity() {
         var init = true
 
 
-        board = Board()
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
 //        multiplayer = prefs.getBoolean("multiplayer", true)
 
@@ -95,11 +106,15 @@ class GameViewActivity : AppCompatActivity() {
         databaseReference = firebaseDatabase.reference
         username = prefs.getString("username", "").toString()
 
-        if(multiplayer) {
+        if(multiplayer || replay) {
             binding.fabBack.isVisible = false
             binding.resetbtn.isVisible = false
-            binding.player2indicator.isVisible = true
-            binding.player2indicator.text = opponent
+            if(!replay){
+                binding.player2indicator.isVisible = true
+                binding.player2indicator.text = opponent
+            } else {
+                binding.player2indicator.isVisible = false
+            }
             binding.settingsbtn.isVisible = false
             databaseReference.child("players").child(username).setValue("unavailable")
             binding.loadlatestbtn.isVisible = false
@@ -225,6 +240,7 @@ class GameViewActivity : AppCompatActivity() {
 
     }
 
+    @SuppressLint("NewApi")
     override fun onStop() {
         super.onStop()
         if(multiplayer){
@@ -233,10 +249,14 @@ class GameViewActivity : AppCompatActivity() {
             databaseReference.child("games").child(match).removeValue()
         }
 
-        if(!multiplayer){
+        if(!multiplayer && !replay){
             val boardState = board.toString()
 
-            var save = BoardData(state=boardState, nextPlayer = currentPlayer, multiplayer = multiplayer)
+            var save = BoardData(state=boardState,
+                nextPlayer = currentPlayer,
+                multiplayer = multiplayer,
+                date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy MM dd HH:mm"))
+            )
 
             thread{
                 val insertId = localDatabase.BoardDataDAO().insert(save)
@@ -520,6 +540,8 @@ class GameViewActivity : AppCompatActivity() {
         }
         sendBoard()
 
+        changeNextPlayer()
+
         drawBoard()
     }
 
@@ -699,9 +721,11 @@ class GameViewActivity : AppCompatActivity() {
             buttonNames.add(b.contentDescription.toString())
         }
 
-        for(b in buttons){
-            b.setOnClickListener {
-                onTileClick(it)
+        if(!replay){
+            for(b in buttons){
+                b.setOnClickListener {
+                    onTileClick(it)
+                }
             }
         }
 

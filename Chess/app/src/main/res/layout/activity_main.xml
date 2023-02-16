@@ -26,9 +26,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_gravity="center"
             android:background="@drawable/rounded_button"
             android:text="Enter multiplayer menu" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/game_log_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center"
+            android:background="@drawable/rounded_button"
+            android:text="View previous games" />
 
     </LinearLayout>
 

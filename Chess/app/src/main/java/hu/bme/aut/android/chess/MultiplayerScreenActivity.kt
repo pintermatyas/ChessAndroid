@@ -1,6 +1,10 @@
 package hu.bme.aut.android.chess
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Point
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +16,9 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
 import hu.bme.aut.android.chess.databinding.ActivityMultiplayerScreenBinding
 import kotlin.properties.Delegates
 
@@ -28,6 +35,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
     private lateinit var log: ArrayList<*>
     private lateinit var binding: ActivityMultiplayerScreenBinding
 
+    @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -39,6 +47,8 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 
         log = ArrayList<String>()
         binding.searchingText.isVisible = false
+        binding.backbutton.isVisible = false
+        binding.scanbutton.isVisible = false
 
 
         binding.playrandom.setOnClickListener {
@@ -50,8 +60,25 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         }
 
         binding.playfriend.setOnClickListener {
-            Snackbar.make(binding.root, "Not yet implemented", Snackbar.LENGTH_SHORT).show()
+            binding.playrandom.isVisible = false
+            binding.playfriend.isVisible = false
+            binding.idIVQrcode.isVisible = true
+            binding.backbutton.isVisible = true
+            binding.scanbutton.isVisible = true
+            val bitmap: Bitmap = getQrCodeBitmap(username)
+            binding.idIVQrcode.setImageBitmap(bitmap)
+
         }
+
+        binding.backbutton.setOnClickListener {
+            binding.playrandom.isVisible = true
+            binding.playfriend.isVisible = true
+            binding.idIVQrcode.isVisible = false
+            binding.backbutton.isVisible = false
+            binding.scanbutton.isVisible = false
+        }
+
+
 
 
         message!!.addValueEventListener(object : ValueEventListener {
@@ -252,6 +279,20 @@ class MultiplayerScreenActivity : AppCompatActivity() {
             Log.d("ONLINE PLAYERS UPDATED", "$onlinePlayers")
         }
         return state
+    }
+
+    fun getQrCodeBitmap(encodedString: String): Bitmap {
+        val size = 512 //pixels
+        val qrCodeContent = encodedString
+        val hints = hashMapOf<EncodeHintType, Int>().also { it[EncodeHintType.MARGIN] = 1 } // Make the QR code buffer border narrower
+        val bits = QRCodeWriter().encode(qrCodeContent, BarcodeFormat.QR_CODE, size, size)
+        return Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).also {
+            for (x in 0 until size) {
+                for (y in 0 until size) {
+                    it.setPixel(x, y, if (bits[x, y]) Color.BLACK else Color.WHITE)
+                }
+            }
+        }
     }
 
 

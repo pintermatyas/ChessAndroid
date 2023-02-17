@@ -66,5 +66,5 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
 
     implementation 'com.google.zxing:core:3.4.0'
-    
+    implementation 'com.github.yuriy-budiyev:code-scanner:2.3.2'
 }

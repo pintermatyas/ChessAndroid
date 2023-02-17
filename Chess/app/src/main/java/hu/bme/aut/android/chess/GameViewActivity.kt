@@ -71,6 +71,7 @@ class GameViewActivity : AppCompatActivity() {
     private var saved = false
 
     var replay = false
+    var ended = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,7 +129,7 @@ class GameViewActivity : AppCompatActivity() {
 
         databaseReference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (multiplayer) {
+                if (multiplayer && !ended) {
                     val map = dataSnapshot.value as Map<*, *>?
 
 //                    toast(match)
@@ -137,10 +138,13 @@ class GameViewActivity : AppCompatActivity() {
 
                     if(games[match].toString() == "ended"){
                         finish()
+                        databaseReference.child("games").child(match).removeValue()
+                        finish()
                         return
                     }
 
                     if(games[match] == null){
+                        finish()
                         return
                     }
                     val game = games[match]!! as HashMap<*, *>
@@ -179,6 +183,7 @@ class GameViewActivity : AppCompatActivity() {
                             whitePlayer = game["white"].toString()
                             blackPlayer = game["black"].toString()
                             databaseReference.child("games").child(match).child("next").setValue(whitePlayer)
+                            Log.d(TAG, "next2: $whitePlayer")
                         }
                     }
 
@@ -194,6 +199,7 @@ class GameViewActivity : AppCompatActivity() {
 
                     if(init){
                         databaseReference.child("games").child(match).child("next").setValue(whitePlayer)
+                        Log.d(TAG, "next3: $whitePlayer")
                         if(blackPlayer == username && !flippedBoard){
 //                            buttonNames.reverse()
 //                            for((idx, b) in buttons.withIndex()) {
@@ -235,10 +241,11 @@ class GameViewActivity : AppCompatActivity() {
         super.onPause()
         if(multiplayer){
             databaseReference.child("games").child(match).child(username).setValue("left")
-            databaseReference.child("games").child(match).setValue("ended")
-            databaseReference.child("games").child(match).removeValue()
+//            databaseReference.child("games").child(match).setValue("ended")
+//            databaseReference.child("games").child(match).removeValue()
         }
         databaseReference.child("players").child(username).setValue("offline")
+        ended = true
 
     }
 
@@ -268,6 +275,7 @@ class GameViewActivity : AppCompatActivity() {
 
             saveBoard()
         }
+        ended = true
     }
 
     override fun onResume() {
@@ -278,7 +286,7 @@ class GameViewActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("PrivateResource")
+    @SuppressLint("PrivateResource", "NewApi")
     private fun onTileClick(view: View){
         if(checkForCheckMate(board)){
             drawBoard()
@@ -570,6 +578,7 @@ class GameViewActivity : AppCompatActivity() {
         else -1
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun checkForCheckMate(b: Board): Boolean{
         val checkByPlayer = checkForCheck(b, true)
         var checkmate = true
@@ -955,6 +964,7 @@ class GameViewActivity : AppCompatActivity() {
         username = prefs.getString("username", "").toString()
 
         databaseReference.child("games").child(match).child(username).setValue(steps.last())
+        Log.d(TAG, "next: $opponent")
         databaseReference.child("games").child(match).child("next").setValue(opponent)
         changeNextPlayer()
 

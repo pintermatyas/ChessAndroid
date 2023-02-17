@@ -5,11 +5,13 @@ import android.app.AlertDialog
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
@@ -66,6 +68,7 @@ class GameViewActivity : AppCompatActivity() {
     private var username: String = ""
 
     private lateinit var localDatabase: GameDatabase
+    private var saved = false
 
     var replay = false
 
@@ -110,11 +113,11 @@ class GameViewActivity : AppCompatActivity() {
             if(!replay){
                 binding.player2indicator.isVisible = true
                 binding.player2indicator.text = opponent
+                databaseReference.child("players").child(username).setValue("unavailable")
             } else {
                 binding.player2indicator.isVisible = false
             }
             binding.settingsbtn.isVisible = false
-            databaseReference.child("players").child(username).setValue("unavailable")
             binding.loadlatestbtn.isVisible = false
         } else{
             binding.fabBack.isVisible = true
@@ -179,26 +182,27 @@ class GameViewActivity : AppCompatActivity() {
                         }
                     }
 
-                    if(whitePlayer == username && flippedBoard){
-                        buttonNames.reverse()
-                        for((idx, b) in buttons.withIndex()) {
-                            b.contentDescription = buttonNames[idx]
-                        }
-                        drawBoard()
-                        flippedBoard = false
-
+                    if((whitePlayer == username && flippedBoard) || (blackPlayer == username && !flippedBoard)){
+//                        buttonNames.reverse()
+//                        for((idx, b) in buttons.withIndex()) {
+//                            b.contentDescription = buttonNames[idx]
+//                        }
+//                        drawBoard()
+//                        flippedBoard = false
+                        flipBoard()
                     }
 
                     if(init){
                         databaseReference.child("games").child(match).child("next").setValue(whitePlayer)
-                        if(blackPlayer == username){
-                            buttonNames.reverse()
-                            for((idx, b) in buttons.withIndex()) {
-                                b.contentDescription = buttonNames[idx]
-                            }
-                            drawBoard()
+                        if(blackPlayer == username && !flippedBoard){
+//                            buttonNames.reverse()
+//                            for((idx, b) in buttons.withIndex()) {
+//                                b.contentDescription = buttonNames[idx]
+//                            }
+                            flipBoard()
+//                            drawBoard()
                             init = false
-                            flippedBoard = true
+//                            flippedBoard = true
                         }
                         else if(whitePlayer == username){
                             init = false
@@ -247,20 +251,22 @@ class GameViewActivity : AppCompatActivity() {
             databaseReference.child("games").child(match).removeValue()
         }
 
-        if(!multiplayer && !replay){
-            val boardState = board.toString()
+        if(!multiplayer && !replay && !saved){
+//            val boardState = board.toString()
+//
+//            var save = BoardData(state=boardState,
+//                nextPlayer = currentPlayer,
+//                multiplayer = multiplayer,
+//                date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy MM dd HH:mm"))
+//            )
+//
+//            thread{
+//                val insertId = localDatabase.BoardDataDAO().insert(save)
+//                save.id = insertId
+////            lastId = insertId.toInt()
+//            }
 
-            var save = BoardData(state=boardState,
-                nextPlayer = currentPlayer,
-                multiplayer = multiplayer,
-                date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy MM dd HH:mm"))
-            )
-
-            thread{
-                val insertId = localDatabase.BoardDataDAO().insert(save)
-                save.id = insertId
-//            lastId = insertId.toInt()
-            }
+            saveBoard()
         }
     }
 
@@ -605,6 +611,9 @@ class GameViewActivity : AppCompatActivity() {
         } else if(checkByPlayer == -1 || checkByPlayer == 2){
             return false
         }
+
+        if(checkmate) saveBoard()
+
         return checkmate
     }
 
@@ -1026,6 +1035,8 @@ class GameViewActivity : AppCompatActivity() {
         val oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.copy()
         var player = oldPiece?.player
 
+        if(oldPiece == null) return oldBoard
+
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece = null
         oldBoard.tiles[prevTileCol + prevTileRow*8]?.isEmpty = true
 
@@ -1048,8 +1059,6 @@ class GameViewActivity : AppCompatActivity() {
         }
         else if(inCharacters[0] == 'P'){
             piece = Pawn(currentTileCol, currentTileRow, player)
-            piece.firstPosX = oldFirstX!!
-            piece.firstPosY = oldFirstY!!
         }
         else if(inCharacters[0] == 'B'){
             piece = Bishop(currentTileCol, currentTileRow, player)
@@ -1061,14 +1070,22 @@ class GameViewActivity : AppCompatActivity() {
 
 
 
-        piece!!.firstPosX = oldFirstX!!
-        piece.firstPosY = oldFirstY!!
+//        piece!!.firstPosX = oldFirstX!!
+//        piece.firstPosY = oldFirstY!!
 
-        piece.shortenedName = oldPiece!!.shortenedName
-        piece.imagePath = oldPiece.imagePath
-        piece.stepCount = oldPiece.stepCount
-        piece.canPathBeBlocked = oldPiece.canPathBeBlocked
-        piece.isAlive = oldPiece.isAlive
+
+        if (oldFirstX != null) {
+            piece?.firstPosX = oldFirstX
+        }
+        if (oldFirstY != null) {
+            piece?.firstPosY = oldFirstY
+        }
+
+        piece?.shortenedName = oldPiece!!.shortenedName
+        piece?.imagePath = oldPiece.imagePath
+        piece?.stepCount = oldPiece.stepCount
+        piece?.canPathBeBlocked = oldPiece.canPathBeBlocked
+        piece?.isAlive = oldPiece.isAlive
 
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.isEmpty = false
@@ -1078,5 +1095,33 @@ class GameViewActivity : AppCompatActivity() {
 
         return oldBoard
 
+    }
+
+    fun flipBoard(){
+        buttonNames.reverse()
+        for((idx, b) in buttons.withIndex()) {
+            b.contentDescription = buttonNames[idx]
+        }
+        drawBoard()
+        flippedBoard = !flippedBoard
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun saveBoard(){
+        if(saved) return
+        val boardState = board.toString()
+
+        var save = BoardData(state=boardState,
+            nextPlayer = currentPlayer,
+            multiplayer = multiplayer,
+            date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy MM dd HH:mm"))
+        )
+
+        thread{
+            val insertId = localDatabase.BoardDataDAO().insert(save)
+            save.id = insertId
+//            lastId = insertId.toInt()
+            saved = true
+        }
     }
 }

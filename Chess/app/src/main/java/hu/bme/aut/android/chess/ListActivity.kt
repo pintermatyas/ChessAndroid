@@ -40,9 +40,6 @@ class ListActivity : AppCompatActivity(), GameAdapter.GameItemClickListener {
 
         initRecyclerView()
 
-
-
-
     }
 
     override fun onItemChanged(item: BoardData) {
@@ -53,7 +50,14 @@ class ListActivity : AppCompatActivity(), GameAdapter.GameItemClickListener {
     }
 
     override fun onItemRemoved(item: BoardData) {
-        localDatabase.BoardDataDAO().deleteItem(item)
+        thread{
+            localDatabase.BoardDataDAO().deleteItem(item)
+            Log.d("ListActivity", "Delete was successful")
+            val items = localDatabase.BoardDataDAO().getAll()
+            runOnUiThread {
+                adapter.update(items)
+            }
+        }
     }
 
     override fun onItemClicked(item: BoardData) {

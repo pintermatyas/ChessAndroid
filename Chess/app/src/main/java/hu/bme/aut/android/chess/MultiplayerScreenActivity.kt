@@ -4,15 +4,19 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import hu.bme.aut.android.chess.databinding.ActivityMultiplayerScreenBinding
 import kotlin.properties.Delegates
 
 class MultiplayerScreenActivity : AppCompatActivity() {
-    var running by Delegates.notNull<Boolean>()
+    var searching = false
     var username: String = ""
     private var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
     var message = database?.reference
@@ -22,19 +26,37 @@ class MultiplayerScreenActivity : AppCompatActivity() {
     var connected = false
     var opponent = ""
     private lateinit var log: ArrayList<*>
+    private lateinit var binding: ActivityMultiplayerScreenBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        running = true
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_multiplayer_screen)
+
+        binding = ActivityMultiplayerScreenBinding.inflate(layoutInflater)
+        binding.root.setBackgroundResource(R.drawable.background)
+
+        setContentView(binding.root)
         username = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "").toString()
-        message!!.child("players").child(username).setValue("online")
 
         log = ArrayList<String>()
+        binding.searchingText.isVisible = false
+
+
+        binding.playrandom.setOnClickListener {
+            searching = true
+            binding.playrandom.isVisible = false
+            binding.playfriend.isVisible = false
+            binding.searchingText.isVisible = true
+            message!!.child("players").child(username).setValue("online")
+        }
+
+        binding.playfriend.setOnClickListener {
+            Snackbar.make(binding.root, "Not yet implemented", Snackbar.LENGTH_SHORT).show()
+        }
+
 
         message!!.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if(running){
+                if(searching){
 
                     val map = dataSnapshot.value as Map<*, *>?
                     onlinePlayers.clear()
@@ -143,7 +165,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                         this@MultiplayerScreenActivity.finish()
                         startActivity(intent)
                         finish()
-                        running = false
+                        searching = false
 
                         connected = true
                         return
@@ -172,19 +194,19 @@ class MultiplayerScreenActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         message!!.child("players").child(username).setValue("offline")
-        running = false
+        searching = false
         logged = false
     }
 
     override fun onStop() {
         super.onStop()
-        running = false
+        searching = false
     }
 
     override fun onResume() {
         super.onResume()
-        running = true
-        message!!.child("players").child(username).setValue("online")
+//        searching = true
+//        message!!.child("players").child(username).setValue("online")
     }
 
     fun createPairing(map: Map<*,*>): String{

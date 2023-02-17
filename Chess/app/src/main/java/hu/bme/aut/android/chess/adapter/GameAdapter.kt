@@ -33,6 +33,9 @@ class GameAdapter(private val listener: GameItemClickListener) :RecyclerView.Ada
         holder.binding.root.setOnClickListener {
             listener.onItemClicked(data)
         }
+        holder.binding.deletebtn.setOnClickListener {
+            listener.onItemRemoved(data)
+        }
     }
 
     override fun getItemCount(): Int = items.size

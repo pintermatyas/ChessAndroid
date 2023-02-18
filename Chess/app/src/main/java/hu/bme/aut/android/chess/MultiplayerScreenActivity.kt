@@ -80,11 +80,8 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         codeScanner.decodeCallback = DecodeCallback {
             runOnUiThread {
                 opponent = it.text
-//                message!!.child("players").child(username).setValue("unavailable")
-//
-//
-//                message!!.child("log").child(logSize.toString()).setValue("$opponent,$username")
-//                logged = true
+
+
                 val game = "$opponent,$username"
                 message!!.child("games").child(game).child(username).setValue("entered")
                 val intent = Intent(this@MultiplayerScreenActivity, GameViewActivity::class.java).apply {  }
@@ -97,7 +94,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
 
-                Toast.makeText(this, "$opponent,$username", Toast.LENGTH_LONG).show()
+//                Toast.makeText(this, "$opponent,$username", Toast.LENGTH_LONG).show()
             }
         }
         codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS
@@ -127,6 +124,8 @@ class MultiplayerScreenActivity : AppCompatActivity() {
             binding.idIVQrcode.isVisible = true
             binding.backbutton.isVisible = true
             binding.scanbutton.isVisible = true
+
+
             val bitmap: Bitmap = getQrCodeBitmap(username)
             binding.idIVQrcode.setImageBitmap(bitmap)
             friendMatch = true

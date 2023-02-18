@@ -566,8 +566,14 @@ class GameViewActivity : AppCompatActivity() {
             val piece = t?.chessPiece
             if(piece is King && b.checkForKingAttack(t)){
                 if(!findingCheckMate) highlightTileForCheck(findButtonFromTile(t)!!)
-                if(piece.player == 0) checkByBlack = true
-                if(piece.player == 1) checkByWhite = true
+                if(piece.player == 0) {
+                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
+                    checkByBlack = true
+                }
+                if(piece.player == 1) {
+                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
+                    checkByWhite = true
+                }
             }
         }
 
@@ -606,11 +612,17 @@ class GameViewActivity : AppCompatActivity() {
                         tempBoardPieceOne?.posY = tempTiles!!.y_coord
                         tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece = tempBoardPieceOne
                         tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.isEmpty = false
+
                         tempBoard.tiles[t.x_coord + t.y_coord*8]!!.isEmpty = true
-                        if(listOf(checkedPlayer, -1).contains(checkForCheck(tempBoard, true)) && validMove) {
+                        tempBoard.tiles[t.x_coord + t.y_coord*8]!!.chessPiece = null
+                        val checkBy = checkForCheck(tempBoard, true)
+                        if(listOf(checkedPlayer, -1).contains(checkBy) && validMove) {
 //                            Log.d("Prevent checkmate:", "${tempBoardPieceOne?.player} with ${tempBoardPieceOne?.shortenedName} from ${tempBoardTileOne.tileName} to ${tempBoardTileTwo?.tileName}")
                             checkmate = false
                         }
+//                        else if(validMove){
+//                            Log.d(TAG, "${tempBoardPieceOne?.player} with ${tempBoardPieceOne?.shortenedName} from ${tempBoardTileOne.tileName} to ${tempBoardTileTwo?.tileName}, check by player $checkByPlayer, checked player: $checkedPlayer")
+//                        }
 //                    }
 
 

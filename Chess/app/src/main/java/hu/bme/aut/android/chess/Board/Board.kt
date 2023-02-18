@@ -1,5 +1,7 @@
 package hu.bme.aut.android.chess.Board
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import hu.bme.aut.android.chess.Board.Pieces.*
 
 class Board {
@@ -107,6 +109,7 @@ class Board {
                 //If the selected piece is attacking the enemy King
                 if(piece.isAttackingTile(tile,this) && piece.player != (tile.chessPiece as King).player){
                     attacked = true
+//                    Log.d(TAG, "King ${tile.chessPiece!!.player} is under attack on ${tile.tileName} by ${piece.shortenedName} ${piece.player}")
                 }
             }
         }

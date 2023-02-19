@@ -1,7 +1,5 @@
 package hu.bme.aut.android.chess.Board
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import hu.bme.aut.android.chess.Board.Pieces.*
 
 class Board {
@@ -61,8 +59,8 @@ class Board {
             if(tile.chessPiece == null){
                 tile.isEmpty = true
             }
-            tile.x_coord = x
-            tile.y_coord = y
+            tile.xCoord = x
+            tile.yCoord = y
             tileInit[i] = tile
 
         }
@@ -82,16 +80,16 @@ class Board {
         val piece = from.chessPiece
         if(piece != null){
             if(piece.isPathBlockedToTile(to,this)){
-                tiles[from.x_coord + from.y_coord*8]?.chessPiece = null
-                tiles[from.x_coord + from.y_coord*8]?.isEmpty = true
+                tiles[from.xCoord + from.yCoord*8]?.chessPiece = null
+                tiles[from.xCoord + from.yCoord*8]?.isEmpty = true
                 if(!to.isEmpty){
-                    tiles[to.x_coord + to.y_coord*8]?.chessPiece?.isAlive = false
+                    tiles[to.xCoord + to.yCoord*8]?.chessPiece?.isAlive = false
                 }
-                tiles[to.x_coord + to.y_coord*8]?.chessPiece = piece
-                tiles[to.x_coord + to.y_coord*8]?.isEmpty = false
-                piece.step(tiles[to.x_coord + to.y_coord*8],this)
-                piece.posX = tiles[to.x_coord + to.y_coord*8]?.x_coord!!
-                piece.posY = tiles[to.x_coord + to.y_coord*8]?.y_coord!!
+                tiles[to.xCoord + to.yCoord*8]?.chessPiece = piece
+                tiles[to.xCoord + to.yCoord*8]?.isEmpty = false
+                piece.step(tiles[to.xCoord + to.yCoord*8],this)
+                piece.posX = tiles[to.xCoord + to.yCoord*8]?.xCoord!!
+                piece.posY = tiles[to.xCoord + to.yCoord*8]?.yCoord!!
             }
         }
 
@@ -144,22 +142,22 @@ class Board {
         //Queen
         when (id) {
             1 -> {
-                piece = Queen(tile!!.x_coord, tile.y_coord, player)
+                piece = Queen(tile!!.xCoord, tile.yCoord, player)
             }
             //Rook
             2 -> {
-                piece = Rook(tile!!.x_coord, tile.y_coord, player)
+                piece = Rook(tile!!.xCoord, tile.yCoord, player)
             }
             //Bishop
             3 -> {
-                piece = Bishop(tile!!.x_coord, tile.y_coord, player)
+                piece = Bishop(tile!!.xCoord, tile.yCoord, player)
             }
             //Knight
             4 -> {
-                piece = Knight(tile!!.x_coord, tile.y_coord, player)
+                piece = Knight(tile!!.xCoord, tile.yCoord, player)
             }
         }
-        tiles[tile!!.x_coord + tile.y_coord*8]?.chessPiece = piece
+        tiles[tile!!.xCoord + tile.yCoord*8]?.chessPiece = piece
     }
 
     fun manageCastling(tileOfKing: Tile){

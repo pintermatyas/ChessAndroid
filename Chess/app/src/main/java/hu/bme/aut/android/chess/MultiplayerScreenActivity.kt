@@ -4,33 +4,22 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.Point
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
-import com.budiyev.android.codescanner.AutoFocusMode
-import com.budiyev.android.codescanner.CodeScanner
-import com.budiyev.android.codescanner.DecodeCallback
-import com.budiyev.android.codescanner.ErrorCallback
-import com.budiyev.android.codescanner.ScanMode
-import com.google.android.material.snackbar.Snackbar
+import com.budiyev.android.codescanner.*
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.snapshots
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import hu.bme.aut.android.chess.databinding.ActivityMultiplayerScreenBinding
-import kotlinx.coroutines.flow.last
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.properties.Delegates
 
 class MultiplayerScreenActivity : AppCompatActivity() {
     var searching = false
@@ -50,6 +39,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
     @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
 
         binding = ActivityMultiplayerScreenBinding.inflate(layoutInflater)
         binding.root.setBackgroundResource(R.drawable.background)
@@ -127,7 +117,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 
 
             val bitmap: Bitmap = getQrCodeBitmap(username)
-            binding.idIVQrcode.setImageBitmap(bitmap)
+            binding.idIVQrcode.background = BitmapDrawable(binding.root.context.resources, bitmap)
             friendMatch = true
             searching = false
 

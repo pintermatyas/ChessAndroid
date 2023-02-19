@@ -86,7 +86,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_button"
-            android:text="Scan qr code"/>
+            android:text="@string/scan_qr_code"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/backbutton"

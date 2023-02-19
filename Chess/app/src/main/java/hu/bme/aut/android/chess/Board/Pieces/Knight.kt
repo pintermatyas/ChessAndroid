@@ -1,6 +1,5 @@
 package hu.bme.aut.android.chess.Board.Pieces
 
-import android.util.Log
 import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
@@ -14,8 +13,8 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
                 stepCount++
-                posX = tile.x_coord
-                posY = tile.y_coord
+                posX = tile.xCoord
+                posY = tile.yCoord
                 if(tile.isEmpty){
                     tile.isEmpty = false
                 } else tile.chessPiece?.isAlive = false
@@ -28,8 +27,8 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
-        val xNew = tile.x_coord
-        val yNew = tile.y_coord
+        val xNew = tile.xCoord
+        val yNew = tile.yCoord
         val dx = abs(posX - xNew)
         val dy = abs(posY - yNew)
         return (dx==2 && dy==1) || (dx==1 && dy == 2)
@@ -53,8 +52,8 @@ class Knight(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player){
             return false
         }
-        val xNew = tile.x_coord
-        val yNew = tile.y_coord
+        val xNew = tile.xCoord
+        val yNew = tile.yCoord
         val dx = abs(posX - xNew)
         val dy = abs(posY - yNew)
         return ((dx==2 && dy==1) || (dx==1 && dy == 2))

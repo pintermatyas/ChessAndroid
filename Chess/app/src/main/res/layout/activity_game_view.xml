@@ -776,14 +776,13 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_centerInParent="true"
-            android:textColor="@color/black"
-            android:layout_margin="16dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/rounded_button"
-            android:text="@string/reset_board" />
+            android:text="@string/reset_board"
+            android:textColor="@color/black" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/settingsbtn"
@@ -801,12 +800,6 @@
             android:text="@string/settings" />
 
     </RelativeLayout>
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/loadlatestbtn"
-        android:text="load"/>
 
 
 

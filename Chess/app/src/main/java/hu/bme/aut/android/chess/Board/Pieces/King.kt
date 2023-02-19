@@ -1,6 +1,5 @@
 package hu.bme.aut.android.chess.Board.Pieces
 
-import android.util.Log
 import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
@@ -14,8 +13,8 @@ class King(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
                 stepCount++
-                posX = tile.x_coord
-                posY = tile.y_coord
+                posX = tile.xCoord
+                posY = tile.yCoord
                 if(tile.isEmpty){
                     tile.isEmpty = false
                 } else tile.chessPiece?.isAlive = false
@@ -66,8 +65,8 @@ class King(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
             }
         }
 
-        val xNew = tile.x_coord
-        val yNew = tile.y_coord
+        val xNew = tile.xCoord
+        val yNew = tile.yCoord
         return abs(xNew - posX)<=1 && abs(yNew - posY)<=1
     }
 
@@ -86,6 +85,6 @@ class King(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     }
 
     override fun isAttackingTile(tile: Tile, board: Board): Boolean {
-        return (abs(tile.x_coord - posX) <= 1 && abs(tile.y_coord - posY) <= 1)
+        return (abs(tile.xCoord - posX) <= 1 && abs(tile.yCoord - posY) <= 1)
     }
 }

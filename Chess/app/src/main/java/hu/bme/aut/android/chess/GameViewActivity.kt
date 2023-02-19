@@ -26,7 +26,6 @@ import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 import kotlin.math.abs
 
@@ -70,8 +69,8 @@ class GameViewActivity : AppCompatActivity() {
     private lateinit var localDatabase: GameDatabase
     private var saved = false
 
-    var replay = false
-    var ended = false
+    private var replay = false
+    private var ended = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +118,7 @@ class GameViewActivity : AppCompatActivity() {
                 binding.player2indicator.isVisible = false
             }
             binding.settingsbtn.isVisible = false
-            binding.loadlatestbtn.isVisible = false
+//            binding.loadlatestbtn.isVisible = false
         } else{
             binding.fabBack.isVisible = true
             binding.resetbtn.isVisible = true
@@ -258,7 +257,7 @@ class GameViewActivity : AppCompatActivity() {
             databaseReference.child("games").child(match).removeValue()
         }
 
-        if(!multiplayer && !replay && !saved){
+        if(!multiplayer && !replay && !saved && checkForCheckMate(board)){
 //            val boardState = board.toString()
 //
 //            var save = BoardData(state=boardState,
@@ -332,17 +331,17 @@ class GameViewActivity : AppCompatActivity() {
                     }
                     if(!multiplayer || (multiplayer && currentPlayer == playerNumber)){
                         val tempBoard = board.copy()
-                        val currentTileCopy = tempBoard.tiles[currentTile.x_coord + currentTile.y_coord*8]
+                        val currentTileCopy = tempBoard.tiles[currentTile.xCoord + currentTile.yCoord*8]
                         val prevSelectedPieceCopy = previouslySelectedPiece!!.copy()
-                        val prevTileCopy = tempBoard.tiles[previouslySelectedTile!!.x_coord + previouslySelectedTile!!.y_coord*8]
+                        val prevTileCopy = tempBoard.tiles[previouslySelectedTile!!.xCoord + previouslySelectedTile!!.yCoord*8]
                         prevTileCopy?.let {
                             tempBoard.step(it, currentTileCopy!!)
                             it.chessPiece = null
                             it.isEmpty = true
                             currentTileCopy.isEmpty = false
                             currentTileCopy.chessPiece = prevSelectedPieceCopy
-                            currentTileCopy.chessPiece?.posX = currentTileCopy.x_coord
-                            currentTileCopy.chessPiece?.posY = currentTileCopy.y_coord
+                            currentTileCopy.chessPiece?.posX = currentTileCopy.xCoord
+                            currentTileCopy.chessPiece?.posY = currentTileCopy.yCoord
                         }
 
                         val opponent = if(currentPlayer==0) 1 else 0
@@ -361,13 +360,13 @@ class GameViewActivity : AppCompatActivity() {
                                 board.step(it, currentTile)
                                 it.chessPiece = null
                                 currentTile.chessPiece = previouslySelectedPiece
-                                currentTile.chessPiece?.posX = currentTile.x_coord
-                                currentTile.chessPiece?.posY = currentTile.y_coord
+                                currentTile.chessPiece?.posX = currentTile.xCoord
+                                currentTile.chessPiece?.posY = currentTile.yCoord
                             }
                             previouslySelectedPiece!!.step(currentTile,board)
                             prevTile = previouslySelectedTile
                             step = true
-                            if(previouslySelectedPiece is King && abs(prevTile!!.x_coord - currentTile.x_coord) > 1){
+                            if(previouslySelectedPiece is King && abs(prevTile!!.xCoord - currentTile.xCoord) > 1){
                                 castling = true
                             }
                             if(previouslySelectedPiece is Pawn){
@@ -401,8 +400,8 @@ class GameViewActivity : AppCompatActivity() {
             if (prevTile != null) {
                 findButtonFromTile(prevTile)?.let { highlightTile(it) }
             }
-            board.tiles[prevTile!!.x_coord + prevTile.y_coord*8]?.isEmpty = true
-            board.tiles[currentTile.x_coord + currentTile.y_coord*8]?.isEmpty = false
+            board.tiles[prevTile!!.xCoord + prevTile.yCoord*8]?.isEmpty = true
+            board.tiles[currentTile.xCoord + currentTile.yCoord*8]?.isEmpty = false
             var sent = false
             if(multiplayer){
                 var playerNumber = -1
@@ -596,25 +595,25 @@ class GameViewActivity : AppCompatActivity() {
                 for(tempTiles in temp.tiles){
                     val tempBoard = temp.copy()
 
-                    val tempBoardTileOne = tempBoard.tiles[t!!.x_coord + t.y_coord*8]!!.copy()
-                    val tempBoardPieceOne = tempBoard.tiles[t!!.x_coord + t.y_coord*8]!!.chessPiece?.copy()
-                    val tempBoardTileTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]?.copy()
-                    val tempBoardPieceTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece?.copy()
+//                    val tempBoardTileOne = tempBoard.tiles[t.x_coord + t.y_coord*8]!!.copy()
+                    val tempBoardPieceOne = tempBoard.tiles[t.xCoord + t.yCoord*8]!!.chessPiece?.copy()
+//                    val tempBoardTileTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]?.copy()
+//                    val tempBoardPieceTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece?.copy()
 
-                    val validMove = tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!, tempBoard) == true
+                    val validMove = tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.xCoord + (tempTiles.yCoord * 8)]!!, tempBoard) == true
 //                    if(tempBoardPieceOne?.checkIfValidMove(tempBoardTileTwo!!, tempBoard) == true){
 //                        continue
 //                    }
 //                    if(tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!, tempBoard) == true){
 
 //                        tempBoard.step(tempBoard.tiles[t.x_coord + t.y_coord*8]!!, tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!)
-                        tempBoardPieceOne?.posX = tempTiles!!.x_coord
-                        tempBoardPieceOne?.posY = tempTiles!!.y_coord
-                        tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece = tempBoardPieceOne
-                        tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.isEmpty = false
+                        tempBoardPieceOne?.posX = tempTiles!!.xCoord
+                        tempBoardPieceOne?.posY = tempTiles.yCoord
+                        tempBoard.tiles[tempTiles.xCoord + (tempTiles.yCoord * 8)]!!.chessPiece = tempBoardPieceOne
+                        tempBoard.tiles[tempTiles.xCoord + (tempTiles.yCoord * 8)]!!.isEmpty = false
 
-                        tempBoard.tiles[t.x_coord + t.y_coord*8]!!.isEmpty = true
-                        tempBoard.tiles[t.x_coord + t.y_coord*8]!!.chessPiece = null
+                        tempBoard.tiles[t.xCoord + t.yCoord*8]!!.isEmpty = true
+                        tempBoard.tiles[t.xCoord + t.yCoord*8]!!.chessPiece = null
                         val checkBy = checkForCheck(tempBoard, true)
                         if(listOf(checkedPlayer, -1).contains(checkBy) && validMove) {
 //                            Log.d("Prevent checkmate:", "${tempBoardPieceOne?.player} with ${tempBoardPieceOne?.shortenedName} from ${tempBoardTileOne.tileName} to ${tempBoardTileTwo?.tileName}")
@@ -642,8 +641,8 @@ class GameViewActivity : AppCompatActivity() {
         val tileId = view.contentDescription.toString()
         val tile = board.searchForTileById(tileId)
         if(tile!=null){
-            if(tile.x_coord % 2 == 0){
-                if(tile.y_coord % 2 == 0){
+            if(tile.xCoord % 2 == 0){
+                if(tile.yCoord % 2 == 0){
                     view.setBackgroundResource(R.drawable.tile_brown_dark)
                 }
                 else{
@@ -651,7 +650,7 @@ class GameViewActivity : AppCompatActivity() {
                 }
             }
             else{
-                if(tile.y_coord % 2 == 0){
+                if(tile.yCoord % 2 == 0){
                     view.setBackgroundResource(R.drawable.tile_brown_light)
                 }
                 else{
@@ -665,8 +664,8 @@ class GameViewActivity : AppCompatActivity() {
         val tileId = view.contentDescription.toString()
         val tile = board.searchForTileById(tileId)
         if(tile!=null){
-            if(tile.x_coord % 2 == 0){
-                if(tile.y_coord % 2 == 0){
+            if(tile.xCoord % 2 == 0){
+                if(tile.yCoord % 2 == 0){
                     view.setBackgroundResource(R.drawable.tile_gray_dark)
                 }
                 else{
@@ -674,7 +673,7 @@ class GameViewActivity : AppCompatActivity() {
                 }
             }
             else{
-                if(tile.y_coord % 2 == 0){
+                if(tile.yCoord % 2 == 0){
                     view.setBackgroundResource(R.drawable.tile_grey_light)
                 }
                 else{
@@ -688,7 +687,7 @@ class GameViewActivity : AppCompatActivity() {
         for(b in buttons){
             val tileId = b.contentDescription.toString()
             val tempTile = board.searchForTileById(tileId)
-            if(tempTile?.x_coord == tile.x_coord && tempTile.y_coord == tile.y_coord){
+            if(tempTile?.xCoord == tile.xCoord && tempTile.yCoord == tile.yCoord){
                 return b
             }
         }
@@ -786,19 +785,19 @@ class GameViewActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.loadlatestbtn.setOnClickListener {
-            thread {
-                val items = localDatabase.BoardDataDAO().getAll()
-                if(items.isEmpty()) {
-                    return@thread
-                }
-                board.constructBoardFromString(items.last().state)
-                currentPlayer = items.last().nextPlayer
-                runOnUiThread {
-                    drawBoard()
-                }
-            }
-        }
+//        binding.loadlatestbtn.setOnClickListener {
+//            thread {
+//                val items = localDatabase.BoardDataDAO().getAll()
+//                if(items.isEmpty()) {
+//                    return@thread
+//                }
+//                board.constructBoardFromString(items.last().state)
+//                currentPlayer = items.last().nextPlayer
+//                runOnUiThread {
+//                    drawBoard()
+//                }
+//            }
+//        }
 
         binding.fabBack.setOnClickListener {
             revert()
@@ -820,7 +819,7 @@ class GameViewActivity : AppCompatActivity() {
             val tileId = b.contentDescription.toString()
             val tile = board.searchForTileById(tileId)
 
-            if(piece?.posX == tile?.x_coord && piece?.posY == tile?.y_coord){
+            if(piece?.posX == tile?.xCoord && piece?.posY == tile?.yCoord){
                 piece?.let { getImageResourceFromChessPiece(it) }?.let { b.setImageResource(it) }
             }
             if(piece == null){
@@ -828,8 +827,8 @@ class GameViewActivity : AppCompatActivity() {
             }
 
             if(tile!=null){
-                if(tile.x_coord % 2 == 0){
-                    if(tile.y_coord % 2 == 0){
+                if(tile.xCoord % 2 == 0){
+                    if(tile.yCoord % 2 == 0){
                         b.setBackgroundResource(R.drawable.tile_beige_dark)
                     }
                     else{
@@ -837,7 +836,7 @@ class GameViewActivity : AppCompatActivity() {
                     }
                 }
                 else{
-                    if(tile.y_coord % 2 == 0){
+                    if(tile.yCoord % 2 == 0){
                         b.setBackgroundResource(R.drawable.tile_beige_light)
                     }
                     else{
@@ -1103,7 +1102,7 @@ class GameViewActivity : AppCompatActivity() {
             piece?.firstPosY = oldFirstY
         }
 
-        piece?.shortenedName = oldPiece!!.shortenedName
+        piece?.shortenedName = oldPiece.shortenedName
         piece?.imagePath = oldPiece.imagePath
         piece?.stepCount = oldPiece.stepCount
         piece?.canPathBeBlocked = oldPiece.canPathBeBlocked
@@ -1133,10 +1132,11 @@ class GameViewActivity : AppCompatActivity() {
         if(saved) return
         val boardState = board.toString()
 
-        var save = BoardData(state=boardState,
+        val save = BoardData(state=boardState,
             nextPlayer = currentPlayer,
             multiplayer = multiplayer,
-            date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy MM dd HH:mm"))
+            opponent = opponent,
+            date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"))
         )
 
         thread{

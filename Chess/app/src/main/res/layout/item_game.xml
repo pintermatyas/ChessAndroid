@@ -17,24 +17,53 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/date_of_game"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:textSize="25sp"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/date_of_game"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"/>
+
+            <TextView
+                android:id="@+id/opponent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="25sp"/>
+
+        </LinearLayout>
+
+
+
+        <ImageButton
+            android:id="@+id/previewimg"
+            android:layout_width="66dp"
+            android:layout_height="66dp"
+            android:layout_marginEnd="3dp"
+            app:layout_constraintEnd_toStartOf="@+id/deletebtn"
+            android:clickable="false"
+            android:focusable="false"
+            tools:ignore="MissingConstraints"
+            android:contentDescription="@string/bitmap_of_the_saved_board" />
 
         <ImageButton
             android:id="@+id/deletebtn"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="66dp"
+            android:layout_height="66dp"
+            android:contentDescription="@string/delete_button_for_item"
             android:src="@drawable/ic_delete_grey600_48dp"
+            android:background="@android:color/transparent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:contentDescription="Delete button for item" />
+            tools:ignore="MissingConstraints" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
+        android:layout_marginTop="6dp"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"/>

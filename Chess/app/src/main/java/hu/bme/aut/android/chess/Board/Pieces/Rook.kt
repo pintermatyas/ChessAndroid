@@ -1,6 +1,5 @@
 package hu.bme.aut.android.chess.Board.Pieces
 
-import android.util.Log
 import hu.bme.aut.android.chess.Board.Board
 import hu.bme.aut.android.chess.Board.Tile
 import kotlin.math.abs
@@ -13,8 +12,8 @@ class Rook(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
                 stepCount++
-                posX = tile.x_coord
-                posY = tile.y_coord
+                posX = tile.xCoord
+                posY = tile.yCoord
                 if(tile.isEmpty){
                     tile.isEmpty = false
                 } else tile.chessPiece?.isAlive = false
@@ -27,8 +26,8 @@ class Rook(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
-        val xNew = tile.x_coord
-        val yNew = tile.y_coord
+        val xNew = tile.xCoord
+        val yNew = tile.yCoord
         return if(!isPathBlockedToTile(tile, board)){
             xNew == posX || yNew == posY
         } else false
@@ -47,9 +46,9 @@ class Rook(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     override fun isPathBlockedToTile(tile: Tile, board: Board): Boolean {
         var blocked = false
         //Vertical
-        if(tile.y_coord == posY){
-            val xDiff = abs(tile.x_coord - posX)
-            val pos = tile.x_coord - posX>0
+        if(tile.yCoord == posY){
+            val xDiff = abs(tile.xCoord - posX)
+            val pos = tile.xCoord - posX>0
             if(pos){
                 for(i in 1 until xDiff){
                     if(!board.tiles[(posX + i) + posY * 8]?.isEmpty!!){
@@ -66,9 +65,9 @@ class Rook(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
             }
         }
         //Horizontal
-        else if(tile.x_coord == posX){
-            val yDiff = abs(tile.y_coord - posY)
-            val pos = tile.y_coord - posY>0
+        else if(tile.xCoord == posX){
+            val yDiff = abs(tile.yCoord - posY)
+            val pos = tile.yCoord - posY>0
             if(pos){
                 for(i in 1 until yDiff){
                     if(!board.tiles[posX + (posY+i) * 8]?.isEmpty!!){
@@ -92,8 +91,8 @@ class Rook(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player){
             return false
         }
-        val xNew = tile.x_coord
-        val yNew = tile.y_coord
+        val xNew = tile.xCoord
+        val yNew = tile.yCoord
         return if(!isPathBlockedToTile(tile, board)){
             xNew == posX || yNew == posY
         } else false

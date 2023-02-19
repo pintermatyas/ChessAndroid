@@ -4,20 +4,6 @@
     <string name="your_round">YOUR ROUND!</string>
     <string name="title_activity_settings">SettingsActivity</string>
 
-    <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
-    <string name="sync_header">Sync</string>
-
-    <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
-
-    <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
 
     <!--    Game preferences-->
     <string name="auto_queen">Automatically trade Pawn for Queen</string>
@@ -26,8 +12,6 @@
     <string name="reset_board">Reset board</string>
     <string name="title_activity_list">ListActivity</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
@@ -35,4 +19,7 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="searching_for_opponents">Searching for opponents...</string>
     <string name="back">Back</string>
+    <string name="scan_qr_code">Scan QR code</string>
+    <string name="delete_button_for_item">Delete button for item</string>
+    <string name="bitmap_of_the_saved_board">Bitmap of the saved board</string>
 </resources>

@@ -22,4 +22,5 @@
     <string name="scan_qr_code">Scan QR code</string>
     <string name="delete_button_for_item">Delete button for item</string>
     <string name="bitmap_of_the_saved_board">Bitmap of the saved board</string>
+    <string name="msg_token_fmt" />
 </resources>

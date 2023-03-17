@@ -17,10 +17,11 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="searching_for_opponents">Searching for opponents...</string>
+    <string name="searching_for_opponents">Searching for opponents…</string>
     <string name="back">Back</string>
     <string name="scan_qr_code">Scan QR code</string>
     <string name="delete_button_for_item">Delete button for item</string>
     <string name="bitmap_of_the_saved_board">Bitmap of the saved board</string>
     <string name="msg_token_fmt" />
+    <string name="return_to_main_menu">Return to main menu</string>
 </resources>

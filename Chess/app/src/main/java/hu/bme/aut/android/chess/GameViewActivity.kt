@@ -11,8 +11,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
@@ -23,6 +25,7 @@ import hu.bme.aut.android.chess.Board.Tile
 import hu.bme.aut.android.chess.data.BoardData
 import hu.bme.aut.android.chess.data.GameDatabase
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
+import hu.bme.aut.android.chess.preferences.SettingsActivity
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -583,6 +586,7 @@ class GameViewActivity : AppCompatActivity() {
         else -1
     }
 
+    @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.O)
     fun checkForCheckMate(b: Board): Boolean{
         val checkByPlayer = checkForCheck(b, true)
@@ -632,7 +636,27 @@ class GameViewActivity : AppCompatActivity() {
             return false
         }
 
-        if(checkmate) saveBoard()
+        if(checkmate){
+            val factory = LayoutInflater.from(this)
+            val gameoOverDialogView: View = factory.inflate(R.layout.dialog_gameover, null)
+            val gameOverDialog: AlertDialog? = AlertDialog.Builder(this).create()
+            when (checkByPlayer) {
+                0 -> gameoOverDialogView.findViewById<TextView>(R.id.winnertext)?.text = "White won!"
+                1 -> gameoOverDialogView.findViewById<TextView>(R.id.winnertext)?.text = "Black won!"
+            }
+            gameOverDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent);
+            gameOverDialog?.setView(gameoOverDialogView)
+            gameOverDialog?.setCancelable(false)
+            gameOverDialog?.setCanceledOnTouchOutside(false)
+            gameoOverDialogView.findViewById<AppCompatButton>(R.id.mainmenubutton)?.setOnClickListener {
+                val intent = Intent(this@GameViewActivity, MainActivity::class.java).apply {
+                    this.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(intent)
+            }
+            gameOverDialog!!.show()
+            saveBoard()
+        }
 
         return checkmate
     }

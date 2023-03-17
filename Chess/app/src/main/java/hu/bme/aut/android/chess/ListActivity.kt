@@ -58,6 +58,7 @@ class ListActivity : AppCompatActivity(), GameAdapter.GameItemClickListener {
         intent.putExtra("replay", true)
         intent.putExtra("state", item.state)
         intent.putExtra("nextPlayer", item.nextPlayer)
+        intent.putExtra("opponent", item.opponent)
         startActivity(intent)
     }
 

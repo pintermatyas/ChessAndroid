@@ -13,6 +13,7 @@ import androidx.preference.PreferenceManager
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import hu.bme.aut.android.chess.databinding.ActivityMainBinding
+import hu.bme.aut.android.chess.preferences.SettingsActivity
 
 class MainActivity : AppCompatActivity() {
 

@@ -1,85 +1,27 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="Profile">
+    <PreferenceCategory
+        app:title="Profile">
 
         <EditTextPreference
             app:key="username"
             app:title="Username"
             app:useSimpleSummaryProvider="true" />
-
-<!--        <EditTextPreference-->
-<!--            app:key="opponent"-->
-<!--            app:title="Opponent"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
-
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:title="Gameplay"
+        >
 
-<!--    <PreferenceCategory app:title="@string/sync_header">-->
-
-<!--        <SwitchPreferenceCompat-->
-<!--            app:key="sync"-->
-<!--            app:title="@string/sync_title" />-->
-
-<!--        <SwitchPreferenceCompat-->
-<!--            app:dependency="sync"-->
-<!--            app:key="attachment"-->
-<!--            app:summaryOff="@string/attachment_summary_off"-->
-<!--            app:summaryOn="@string/attachment_summary_on"-->
-<!--            app:title="@string/attachment_title" />-->
-
-<!--    </PreferenceCategory>-->
-<!--    <PreferenceCategory app:title="@string/messages_header">-->
-
-<!--        <EditTextPreference-->
-<!--            app:key="signature"-->
-<!--            app:title="@string/signature_title"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
-
-<!--        <ListPreference-->
-<!--            app:defaultValue="reply"-->
-<!--            app:entries="@array/reply_entries"-->
-<!--            app:entryValues="@array/reply_values"-->
-<!--            app:key="reply"-->
-<!--            app:title="@string/reply_title"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
-
-<!--    </PreferenceCategory>-->
-<!--    <PreferenceCategory app:title="@string/sync_header">-->
-
-<!--        <SwitchPreferenceCompat-->
-<!--            app:key="sync"-->
-<!--            app:title="@string/sync_title" />-->
-
-<!--        <SwitchPreferenceCompat-->
-<!--            app:dependency="sync"-->
-<!--            app:key="attachment"-->
-<!--            app:summaryOff="@string/attachment_summary_off"-->
-<!--            app:summaryOn="@string/attachment_summary_on"-->
-<!--            app:title="@string/attachment_title" />-->
-
-<!--    </PreferenceCategory>-->
-
-    <PreferenceCategory app:title="Gameplay">
-
-
-<!--        <ListPreference-->
-<!--            app:defaultValue="10"-->
-<!--            app:entries="@array/timer"-->
-<!--            app:entryValues="@array/timer_values"-->
-<!--            app:key="timer"-->
-<!--            app:title="Time until game over"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
-
-        <!--below switch pref is use for enable stats option-->
         <SwitchPreference
             app:defaultValue="false"
             app:key="autoqueenpromotion"
             app:title="Auto-Queen promotion"
             app:summaryOn="Automatically promotes your pawn to Queen"
-            app:summaryOff="You get to choose which piece you want to promote your pawn to"/>
+            app:summaryOff="You get to choose which piece you want to promote your pawn to"
+            />
 
-        <!--below switch pref is use for enable stats option-->
+
         <SwitchPreference
             app:defaultValue="false"
             app:key="multiplayer"

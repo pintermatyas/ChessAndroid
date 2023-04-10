@@ -569,11 +569,11 @@ class GameViewActivity : AppCompatActivity() {
             if(piece is King && b.checkForKingAttack(t)){
                 if(!findingCheckMate) highlightTileForCheck(findButtonFromTile(t)!!)
                 if(piece.player == 0) {
-                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
+//                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
                     checkByBlack = true
                 }
                 if(piece.player == 1) {
-                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
+//                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
                     checkByWhite = true
                 }
             }

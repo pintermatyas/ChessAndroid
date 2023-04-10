@@ -20,6 +20,8 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import hu.bme.aut.android.chess.databinding.ActivityMultiplayerScreenBinding
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
 
 class MultiplayerScreenActivity : AppCompatActivity() {
     var searching = false
@@ -35,6 +37,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
     private lateinit var log: ArrayList<*>
     private lateinit var binding: ActivityMultiplayerScreenBinding
     private lateinit var codeScanner: CodeScanner
+    private lateinit var timer: Timer
 
     @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +47,8 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         binding = ActivityMultiplayerScreenBinding.inflate(layoutInflater)
         binding.root.setBackgroundResource(R.drawable.background)
 
+        timer = setUpTimer()
+
         setContentView(binding.root)
         username = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "").toString()
 
@@ -52,103 +57,20 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         binding.backbutton.isVisible = false
         binding.scanbutton.isVisible = false
 
+//
+//        Timer("TextEditorTimer", true).schedule(TimeUnit.SECONDS.toMillis(1)){
+//            editSearchingText()
+//        }
 
         val scannerView = binding.scannerView
 
-        codeScanner = CodeScanner(this, scannerView)
-
-        // Parameters (default values)
-        codeScanner.camera = CodeScanner.CAMERA_BACK // or CAMERA_FRONT or specific camera id
-        codeScanner.formats = CodeScanner.ALL_FORMATS // list of type BarcodeFormat,
-        // ex. listOf(BarcodeFormat.QR_CODE)
-        codeScanner.autoFocusMode = AutoFocusMode.SAFE // or CONTINUOUS
-        codeScanner.scanMode = ScanMode.SINGLE // or CONTINUOUS or PREVIEW
-        codeScanner.isAutoFocusEnabled = true // Whether to enable auto focus or not
-        codeScanner.isFlashEnabled = false // Whether to enable flash or not
-
-        // Callbacks
-        codeScanner.decodeCallback = DecodeCallback {
-            runOnUiThread {
-                opponent = it.text
-
-
-                val game = "$opponent,$username"
-                message!!.child("games").child(game).child(username).setValue("entered")
-                val intent = Intent(this@MultiplayerScreenActivity, GameViewActivity::class.java).apply {  }
-                intent.putExtra("multiplayer", true)
-
-                intent.putExtra("opponent", opponent)
-                intent.putExtra("match", game)
-                message!!.child("players").child(username).setValue("unavailable")
-                this@MultiplayerScreenActivity.finish()
-                startActivity(intent)
-                finish()
-
-//                Toast.makeText(this, "$opponent,$username", Toast.LENGTH_LONG).show()
-            }
-        }
-        codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS
-            runOnUiThread {
-                Toast.makeText(this, "Camera initialization error: ${it.message}",
-                    Toast.LENGTH_LONG).show()
-            }
-        }
+        codeScanner = initCodeReader(scannerView)
 
         scannerView.setOnClickListener {
             codeScanner.startPreview()
         }
 
-
-        binding.playrandom.setOnClickListener {
-            searching = true
-            friendMatch = false
-            binding.playrandom.isVisible = false
-            binding.playfriend.isVisible = false
-            binding.searchingText.isVisible = true
-            message!!.child("players").child(username).setValue("online")
-        }
-
-        binding.playfriend.setOnClickListener {
-            binding.playrandom.isVisible = false
-            binding.playfriend.isVisible = false
-            binding.idIVQrcode.isVisible = true
-            binding.backbutton.isVisible = true
-            binding.scanbutton.isVisible = true
-
-
-            val bitmap: Bitmap = getQrCodeBitmap(username)
-            binding.idIVQrcode.background = BitmapDrawable(binding.root.context.resources, bitmap)
-            friendMatch = true
-            searching = false
-
-        }
-
-        binding.backbutton.setOnClickListener {
-            binding.playrandom.isVisible = true
-            binding.playfriend.isVisible = true
-            binding.idIVQrcode.isVisible = false
-            binding.backbutton.isVisible = false
-            binding.scanbutton.isVisible = false
-            binding.scannerView.isVisible = false
-
-            codeScanner.releaseResources()
-        }
-
-        binding.scanbutton.setOnClickListener {
-
-            binding.playrandom.isVisible = false
-            binding.playfriend.isVisible = false
-            binding.idIVQrcode.isVisible = false
-            binding.backbutton.isVisible = true
-            binding.scanbutton.isVisible = false
-
-            binding.scannerView.isVisible = true
-
-
-            codeScanner.startPreview()
-
-        }
-
+        initButtons()
 
 
 
@@ -341,17 +263,12 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         message!!.child("players").child(username).setValue("offline")
         searching = false
         logged = false
+        timer.cancel()
     }
 
     override fun onStop() {
         super.onStop()
         searching = false
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        searching = true
-//        message!!.child("players").child(username).setValue("online")
     }
 
     fun createPairing(map: Map<*,*>): String{
@@ -411,6 +328,124 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun initCodeReader(scannerView: CodeScannerView): CodeScanner{
+        val codeScanner = CodeScanner(this, scannerView)
+
+        // Parameters (default values)
+        codeScanner.camera = CodeScanner.CAMERA_BACK // or CAMERA_FRONT or specific camera id
+        codeScanner.formats = CodeScanner.ALL_FORMATS // list of type BarcodeFormat,
+        // ex. listOf(BarcodeFormat.QR_CODE)
+        codeScanner.autoFocusMode = AutoFocusMode.SAFE // or CONTINUOUS
+        codeScanner.scanMode = ScanMode.SINGLE // or CONTINUOUS or PREVIEW
+        codeScanner.isAutoFocusEnabled = true // Whether to enable auto focus or not
+        codeScanner.isFlashEnabled = false // Whether to enable flash or not
+
+        // Callbacks
+        codeScanner.decodeCallback = DecodeCallback {
+            runOnUiThread {
+                opponent = it.text
+
+
+                val game = "$opponent,$username"
+                message!!.child("games").child(game).child(username).setValue("entered")
+                val intent = Intent(this@MultiplayerScreenActivity, GameViewActivity::class.java).apply {  }
+                intent.putExtra("multiplayer", true)
+
+                intent.putExtra("opponent", opponent)
+                intent.putExtra("match", game)
+                message!!.child("players").child(username).setValue("unavailable")
+                startActivity(intent)
+
+                codeScanner.releaseResources()
+            }
+        }
+        codeScanner.errorCallback = ErrorCallback { // or ErrorCallback.SUPPRESS
+            runOnUiThread {
+                Toast.makeText(this, "Camera initialization error: ${it.message}",
+                    Toast.LENGTH_LONG).show()
+            }
+        }
+
+        return codeScanner
+    }
+
+    fun initButtons(){
+
+        binding.playrandom.setOnClickListener {
+            searching = true
+            friendMatch = false
+            binding.playrandom.isVisible = false
+            binding.playfriend.isVisible = false
+            binding.searchingText.isVisible = true
+            message!!.child("players").child(username).setValue("online")
+        }
+
+        binding.playfriend.setOnClickListener {
+            binding.playrandom.isVisible = false
+            binding.playfriend.isVisible = false
+            binding.idIVQrcode.isVisible = true
+            binding.backbutton.isVisible = true
+            binding.scanbutton.isVisible = true
+
+            val bitmap: Bitmap = getQrCodeBitmap(username)
+            binding.idIVQrcode.background = BitmapDrawable(binding.root.context.resources, bitmap)
+            friendMatch = true
+            searching = false
+
+        }
+
+        binding.backbutton.setOnClickListener {
+            binding.playrandom.isVisible = true
+            binding.playfriend.isVisible = true
+            binding.idIVQrcode.isVisible = false
+            binding.backbutton.isVisible = false
+            binding.scanbutton.isVisible = false
+            binding.scannerView.isVisible = false
+
+            codeScanner.releaseResources()
+        }
+
+        binding.scanbutton.setOnClickListener {
+
+            binding.playrandom.isVisible = false
+            binding.playfriend.isVisible = false
+            binding.idIVQrcode.isVisible = false
+            binding.backbutton.isVisible = true
+            binding.scanbutton.isVisible = false
+
+            binding.scannerView.isVisible = true
+            codeScanner.startPreview()
+        }
+    }
+
+    private fun editSearchingText(){
+        // Edits the "Searching for opponent" text on the screen.
+        val text = binding.searchingText.text
+        var newText = ""
+        this@MultiplayerScreenActivity.runOnUiThread {
+            if(text == "Searching for opponents"){
+                newText = "Searching for opponents."
+            }else if(text == "Searching for opponents."){
+                newText = "Searching for opponents.."
+            } else if(text == "Searching for opponents.."){
+                newText = "Searching for opponents..."
+            }else if(text == "Searching for opponents..."){
+                newText = "Searching for opponents"
+            }
+            Log.d("TIMER", "Edited text ${binding.searchingText.text} to $newText")
+            binding.searchingText.text = newText
+
+        }
+    }
+
+    private fun setUpTimer(): Timer {
+        //Creates a timer that periodically every 1 second edits the "Searching for opponents" text
+        return fixedRateTimer("timer", false, 0L, 1000) {
+            editSearchingText()
+        }
+
     }
 
 

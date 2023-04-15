@@ -30,24 +30,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
 
-//
-//        FirebaseMessaging.getInstance().getToken()
-//
-//        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-//            if (!task.isSuccessful) {
-//                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
-//                return@OnCompleteListener
-//            }
-//
-//            // Get new FCM registration token
-//            val token = task.result
-//
-//            // Log and toast
-//            val msg = getString(R.string.msg_token_fmt, token)
-//            Log.d(TAG, msg)
-//            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-//        })
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         binding.root.setBackgroundResource(R.drawable.background)
         setContentView(binding.root)
@@ -73,7 +55,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Username is not set!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-//            message.child("players").child(username).setValue("online")
 
             val intent = Intent(this@MainActivity, MultiplayerScreenActivity::class.java).apply {  }
             intent.putExtra("multiplayer", true)

@@ -1,7 +1,7 @@
-package hu.bme.aut.android.chess.Board.Pieces
+package hu.bme.aut.android.chess.board.pieces
 
-import hu.bme.aut.android.chess.Board.Board
-import hu.bme.aut.android.chess.Board.Tile
+import hu.bme.aut.android.chess.board.Board
+import hu.bme.aut.android.chess.board.Tile
 import kotlin.math.abs
 
 class Rook(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {

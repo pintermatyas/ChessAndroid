@@ -1,6 +1,6 @@
-package hu.bme.aut.android.chess.Board
+package hu.bme.aut.android.chess.board
 
-import hu.bme.aut.android.chess.Board.Pieces.*
+import hu.bme.aut.android.chess.board.pieces.*
 
 class Board {
     var tiles =  initBoard()
@@ -259,7 +259,6 @@ class Board {
     fun constructBoardFromString(boardString: String){
         if(boardString.length != 64) return
 
-//        emptyBoard()
 
         for(i in 0..63){
             var char = boardString.get(i)
@@ -319,8 +318,6 @@ class Board {
                     tiles[i]?.chessPiece = Rook(xCoordinate, yCoordinate, player)
                 }
             }
-
-//            tiles[i]?.isEmpty = false
 
         }
     }

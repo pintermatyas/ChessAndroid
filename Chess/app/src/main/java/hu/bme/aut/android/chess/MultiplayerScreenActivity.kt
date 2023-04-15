@@ -57,11 +57,6 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         binding.backbutton.isVisible = false
         binding.scanbutton.isVisible = false
 
-//
-//        Timer("TextEditorTimer", true).schedule(TimeUnit.SECONDS.toMillis(1)){
-//            editSearchingText()
-//        }
-
         val scannerView = binding.scannerView
 
         codeScanner = initCodeReader(scannerView)
@@ -94,17 +89,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 
                     if(oldLog == log && log.last().toString() == "entered" && !friendMatch) return
 
-//                if(!joinLog){
-//                    message!!.child("log").child(logSize.toString()).setValue("$username joined")
-//                    joinLog = true
-//                }
-
-
                     updateOnlinePlayers(map)
-
-
-
-
 
                     if(log.last().toString().contains(username) && !connected && oldLog != log){
                         message!!.child("games").child(log.last().toString()).child(username).setValue("entered")
@@ -119,14 +104,10 @@ class MultiplayerScreenActivity : AppCompatActivity() {
 
                     if(game == "entered" && !friendMatch){
                         updateOnlinePlayers(map)
-//                        Log.d("LOGGING STATUS", "LAST MESSAGE IS ENTERED")
                         log = map["log"] as ArrayList<*>
                         logSize = log.size
                         createPairing(map)
-//                    return
                     }
-
-//                    Toast.makeText(this@MultiplayerScreenActivity, "changed", Toast.LENGTH_SHORT).show()
 
                     val games: HashMap<*, *> = map["games"] as HashMap<*,*>
                     val gameKeys = games.keys
@@ -135,9 +116,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     for(k in gameKeys){
                         if(k.toString().contains(username)){
                             existingGame = true
-                            runOnUiThread {
-//                                Toast.makeText(this@MultiplayerScreenActivity, "found match: $k", Toast.LENGTH_SHORT).show()
-                            }
+
                             friendlyGame = k.toString()
                         }
                     }
@@ -167,10 +146,7 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                             message!!.child("games").child(game).child("white").setValue("")
                             message!!.child("games").child(game).child("black").setValue("")
                         }
-//                    if(match["white"].toString()=="null" || match["white"].toString()==""){
-//                        message!!.child("games").child(game).child("white").setValue(username)
-//                        message!!.child("games").child(game).child("black").setValue(opponent)
-//                    }
+
                         intent.putExtra("opponent", opponent)
                         intent.putExtra("match", game)
                         message!!.child("players").child(username).setValue("unavailable")
@@ -191,13 +167,6 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                     Log.d("Connection status", "EXISTING: $existingGame, CONNECTED: ${connected}, ONLINE PLAYERS: $onlinePlayers")
 
                     if((existingGame && !connected && game != "entered") || (existingGame && friendMatch) ){
-
-//                    if(!onlinePlayers.contains(opponent)){
-//                        Log.d("TAG", "Opponent $opponent is not online")
-//                        return
-//                    }
-
-//                    Toast.makeText(this@MultiplayerScreenActivity, "connecting to $game", Toast.LENGTH_SHORT).show()
 
                         Log.d("entered", "$username entered")
                         message!!.child("games").child(game).child(username).setValue("entered")
@@ -222,10 +191,6 @@ class MultiplayerScreenActivity : AppCompatActivity() {
                             message!!.child("games").child(game).child("white").setValue("")
                             message!!.child("games").child(game).child("black").setValue("")
                         }
-//                    if(match["white"].toString()=="null" || match["white"].toString()==""){
-//                        message!!.child("games").child(game).child("white").setValue(username)
-//                        message!!.child("games").child(game).child("black").setValue(opponent)
-//                    }
                         intent.putExtra("opponent", opponent)
                         intent.putExtra("match", game)
                         message!!.child("players").child(username).setValue("unavailable")
@@ -334,13 +299,12 @@ class MultiplayerScreenActivity : AppCompatActivity() {
         val codeScanner = CodeScanner(this, scannerView)
 
         // Parameters (default values)
-        codeScanner.camera = CodeScanner.CAMERA_BACK // or CAMERA_FRONT or specific camera id
-        codeScanner.formats = CodeScanner.ALL_FORMATS // list of type BarcodeFormat,
-        // ex. listOf(BarcodeFormat.QR_CODE)
-        codeScanner.autoFocusMode = AutoFocusMode.SAFE // or CONTINUOUS
-        codeScanner.scanMode = ScanMode.SINGLE // or CONTINUOUS or PREVIEW
-        codeScanner.isAutoFocusEnabled = true // Whether to enable auto focus or not
-        codeScanner.isFlashEnabled = false // Whether to enable flash or not
+        codeScanner.camera = CodeScanner.CAMERA_BACK
+        codeScanner.formats = CodeScanner.ALL_FORMATS
+        codeScanner.autoFocusMode = AutoFocusMode.SAFE
+        codeScanner.scanMode = ScanMode.SINGLE
+        codeScanner.isAutoFocusEnabled = true
+        codeScanner.isFlashEnabled = false
 
         // Callbacks
         codeScanner.decodeCallback = DecodeCallback {

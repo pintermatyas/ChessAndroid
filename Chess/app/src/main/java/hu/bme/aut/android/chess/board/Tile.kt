@@ -1,6 +1,6 @@
-package hu.bme.aut.android.chess.Board
+package hu.bme.aut.android.chess.board
 
-import hu.bme.aut.android.chess.Board.Pieces.ChessPiece
+import hu.bme.aut.android.chess.board.pieces.ChessPiece
 
 class Tile(x: Int,y: Int) {
     var xCoord: Int = x

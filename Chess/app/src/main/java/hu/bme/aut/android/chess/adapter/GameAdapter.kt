@@ -42,7 +42,7 @@ class GameAdapter(private val listener: GameItemClickListener) :RecyclerView.Ada
         holder.binding.deletebtn.setOnClickListener {
             listener.onItemRemoved(data)
         }
-        holder.binding.previewimg.background = BitmapDrawable(holder.binding.root.context.resources, getBoardBitmap(data.state))
+        holder.binding.previewimg.background = BitmapDrawable(holder.binding.root.context.resources, getBoardBitmap(data.state, data.nextPlayer))
     }
 
     override fun getItemCount(): Int = items.size
@@ -55,26 +55,37 @@ class GameAdapter(private val listener: GameItemClickListener) :RecyclerView.Ada
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun getBoardBitmap(boardString: String): Bitmap? {
+    private fun getBoardBitmap(boardString: String, player: Int): Bitmap? {
         val multiplier = 32
         val size = 8*multiplier // 32*8
 
         return Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).also {
             for (y in 0 until size) {
                 for (x in 0 until size) {
-                    val realX = x/multiplier
-                    val realY = y/multiplier
+                    var realX = x/multiplier
+                    var realY = y/multiplier
                     val char = boardString[realX+8*realY]
+
+                    var boardXPos: Int = x
+                    var boardYPos: Int = size-y-1
+
+                    if(player == 1){
+                        boardXPos = size-x-1
+                        boardYPos = y
+                        realX = size - x/multiplier - 1
+                        realY = size - y/multiplier - 1
+                    }
+
                     if(x%multiplier < 2 || y%multiplier < 2 || size-x < 2 || size-y < 2){
-                        it.setPixel(x, size-y-1, Color.BLACK)
+                        it.setPixel(boardXPos, boardYPos, Color.BLACK)
                         continue
                     }
                     if(char=='0'){
-                        it.setPixel(x, size-y-1, if ((realX+realY) % 2 == 0) Color.rgb(191, 147, 52) else Color.rgb(245, 218, 159))
+                        it.setPixel(boardXPos, boardYPos, if ((realX+realY) % 2 == 0) Color.rgb(191, 147, 52) else Color.rgb(245, 218, 159))
                     } else if(char.isUpperCase()){
-                        it.setPixel(x, size-y-1, Color.BLACK)
+                        it.setPixel(boardXPos, boardYPos, Color.BLACK)
                     }else if(char.isLowerCase()){
-                        it.setPixel(x, size-y-1, Color.WHITE)
+                        it.setPixel(boardXPos, boardYPos, Color.WHITE)
                     }
                 }
             }

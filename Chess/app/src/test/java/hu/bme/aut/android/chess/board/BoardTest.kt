@@ -1,8 +1,8 @@
-package hu.bme.aut.android.chess.Board
+package hu.bme.aut.android.chess.board
 
-import hu.bme.aut.android.chess.Board.Pieces.King
-import hu.bme.aut.android.chess.Board.Pieces.Pawn
-import hu.bme.aut.android.chess.Board.Pieces.Queen
+import hu.bme.aut.android.chess.board.pieces.King
+import hu.bme.aut.android.chess.board.pieces.Pawn
+import hu.bme.aut.android.chess.board.pieces.Queen
 import org.junit.Assert.*
 
 class BoardTest {

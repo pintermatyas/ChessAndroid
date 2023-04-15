@@ -19,9 +19,9 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.*
-import hu.bme.aut.android.chess.Board.Board
-import hu.bme.aut.android.chess.Board.Pieces.*
-import hu.bme.aut.android.chess.Board.Tile
+import hu.bme.aut.android.chess.board.Board
+import hu.bme.aut.android.chess.board.Tile
+import hu.bme.aut.android.chess.board.pieces.*
 import hu.bme.aut.android.chess.data.BoardData
 import hu.bme.aut.android.chess.data.GameDatabase
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
@@ -77,31 +77,32 @@ class GameViewActivity : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "MATCH ENTERED")
-        board = Board()
-
-        if(intent.extras!!.getBoolean("replay")){
-            replay = true
-            board.constructBoardFromString(intent.extras!!.getString("state")!!)
-            currentPlayer = intent.extras!!.getInt("nextPlayer")
-        }
-
-        multiplayer = intent.extras!!.getBoolean("multiplayer")
-        opponent = intent.extras!!.getString("opponent").toString()
-        match = intent.extras!!.getString("match").toString()
-
-//        toast(match)
-
-        //Toast.makeText(this, "opponent: $opponent", Toast.LENGTH_SHORT).show()
         super.onCreate(savedInstanceState)
         binding = ActivityGameViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
         var init = true
 
+        board = Board()
+        setUpButtons()
+
+        val intentExtras = intent.extras!!
+
+        if(intentExtras.getBoolean("replay")){
+            replay = true
+            board.constructBoardFromString(intentExtras.getString("state")!!)
+            if(intentExtras.getInt("nextPlayer") == 1){
+                flipBoard()
+            }
+        }
+
+        multiplayer = intentExtras.getBoolean("multiplayer")
+        opponent = intentExtras.getString("opponent").toString()
+        match = intentExtras.getString("match").toString()
+
+
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
-//        multiplayer = prefs.getBoolean("multiplayer", true)
 
         localDatabase = GameDatabase.getDatabase(this)
 
@@ -121,7 +122,6 @@ class GameViewActivity : AppCompatActivity() {
                 binding.player2indicator.isVisible = false
             }
             binding.settingsbtn.isVisible = false
-//            binding.loadlatestbtn.isVisible = false
         } else{
             binding.fabBack.isVisible = true
             binding.resetbtn.isVisible = true
@@ -133,9 +133,6 @@ class GameViewActivity : AppCompatActivity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (multiplayer && !ended) {
                     val map = dataSnapshot.value as Map<*, *>?
-
-//                    toast(match)
-
                     val games = map!!["games"] as HashMap<*, *>
 
                     if(games[match].toString() == "ended"){
@@ -160,7 +157,6 @@ class GameViewActivity : AppCompatActivity() {
 
 
                     if(game[opponent].toString() == "left"){
-//                        toast("Opponent left the game")
                         databaseReference.child("games").child(match).child(opponent).setValue("idle")
                         databaseReference.child("games").child(match).child(username).setValue("idle")
                         databaseReference.child("games").child(match).setValue("ended")
@@ -171,7 +167,6 @@ class GameViewActivity : AppCompatActivity() {
                     }
 
                     else if(game[opponent].toString() == "idle"){
-//                        toast("Waiting for opponent...")
                         return
                     }
 
@@ -190,12 +185,6 @@ class GameViewActivity : AppCompatActivity() {
                     }
 
                     if((whitePlayer == username && flippedBoard) || (blackPlayer == username && !flippedBoard)){
-//                        buttonNames.reverse()
-//                        for((idx, b) in buttons.withIndex()) {
-//                            b.contentDescription = buttonNames[idx]
-//                        }
-//                        drawBoard()
-//                        flippedBoard = false
                         flipBoard()
                     }
 
@@ -203,14 +192,8 @@ class GameViewActivity : AppCompatActivity() {
                         databaseReference.child("games").child(match).child("next").setValue(whitePlayer)
                         Log.d(TAG, "next3: $whitePlayer")
                         if(blackPlayer == username && !flippedBoard){
-//                            buttonNames.reverse()
-//                            for((idx, b) in buttons.withIndex()) {
-//                                b.contentDescription = buttonNames[idx]
-//                            }
                             flipBoard()
-//                            drawBoard()
                             init = false
-//                            flippedBoard = true
                         }
                         else if(whitePlayer == username){
                             init = false
@@ -221,11 +204,9 @@ class GameViewActivity : AppCompatActivity() {
                         return
                     } else opponentMove = recentMove
                     val tempBoard = interpretMessage(opponentMove)
-//                    changeNextPlayer()
                     board = tempBoard.copy()
                     drawBoard()
                     return
-//                }
                 }
             }
             override fun onCancelled(error: DatabaseError) {
@@ -233,7 +214,6 @@ class GameViewActivity : AppCompatActivity() {
         })
 
 
-        setUpButtons()
         drawBoard()
         changeNextPlayer()
 
@@ -243,8 +223,6 @@ class GameViewActivity : AppCompatActivity() {
         super.onPause()
         if(multiplayer){
             databaseReference.child("games").child(match).child(username).setValue("left")
-//            databaseReference.child("games").child(match).setValue("ended")
-//            databaseReference.child("games").child(match).removeValue()
         }
         databaseReference.child("players").child(username).setValue("offline")
         ended = true
@@ -261,20 +239,6 @@ class GameViewActivity : AppCompatActivity() {
         }
 
         if(!multiplayer && !replay && !saved && checkForCheckMate(board)){
-//            val boardState = board.toString()
-//
-//            var save = BoardData(state=boardState,
-//                nextPlayer = currentPlayer,
-//                multiplayer = multiplayer,
-//                date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy MM dd HH:mm"))
-//            )
-//
-//            thread{
-//                val insertId = localDatabase.BoardDataDAO().insert(save)
-//                save.id = insertId
-////            lastId = insertId.toInt()
-//            }
-
             saveBoard()
         }
         ended = true
@@ -358,7 +322,6 @@ class GameViewActivity : AppCompatActivity() {
                             }
                             backup.add(previousBoard.copy())
                             steps.add(previouslySelectedPiece?.shortenedName +  previouslySelectedTile?.tileName + currentTile.tileName)
-//                        Toast.makeText(this, steps.last(), Toast.LENGTH_SHORT).show()
                             previouslySelectedTile?.let {
                                 board.step(it, currentTile)
                                 it.chessPiece = null
@@ -567,13 +530,18 @@ class GameViewActivity : AppCompatActivity() {
         for(t in b.tiles){
             val piece = t?.chessPiece
             if(piece is King && b.checkForKingAttack(t)){
-                if(!findingCheckMate) highlightTileForCheck(findButtonFromTile(t)!!)
+                if(!findingCheckMate) {
+                    try {
+                        highlightTileForCheck(findButtonFromTile(t)!!)
+                    }
+                    catch (e: NullPointerException){
+                        Log.e(TAG, "NullPointerException")
+                    }
+                }
                 if(piece.player == 0) {
-//                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
                     checkByBlack = true
                 }
                 if(piece.player == 1) {
-//                    Log.d(TAG, "King ${piece.player} is attacked on ${t.tileName}")
                     checkByWhite = true
                 }
             }
@@ -598,36 +566,18 @@ class GameViewActivity : AppCompatActivity() {
                 val temp = b.copy()
                 for(tempTiles in temp.tiles){
                     val tempBoard = temp.copy()
-
-//                    val tempBoardTileOne = tempBoard.tiles[t.x_coord + t.y_coord*8]!!.copy()
                     val tempBoardPieceOne = tempBoard.tiles[t.xCoord + t.yCoord*8]!!.chessPiece?.copy()
-//                    val tempBoardTileTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]?.copy()
-//                    val tempBoardPieceTwo = tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!.chessPiece?.copy()
-
                     val validMove = tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.xCoord + (tempTiles.yCoord * 8)]!!, tempBoard) == true
-//                    if(tempBoardPieceOne?.checkIfValidMove(tempBoardTileTwo!!, tempBoard) == true){
-//                        continue
-//                    }
-//                    if(tempBoardPieceOne?.checkIfValidMove(tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!, tempBoard) == true){
-
-//                        tempBoard.step(tempBoard.tiles[t.x_coord + t.y_coord*8]!!, tempBoard.tiles[tempTiles!!.x_coord + (tempTiles.y_coord * 8)]!!)
-                        tempBoardPieceOne?.posX = tempTiles!!.xCoord
-                        tempBoardPieceOne?.posY = tempTiles.yCoord
-                        tempBoard.tiles[tempTiles.xCoord + (tempTiles.yCoord * 8)]!!.chessPiece = tempBoardPieceOne
-                        tempBoard.tiles[tempTiles.xCoord + (tempTiles.yCoord * 8)]!!.isEmpty = false
-
-                        tempBoard.tiles[t.xCoord + t.yCoord*8]!!.isEmpty = true
-                        tempBoard.tiles[t.xCoord + t.yCoord*8]!!.chessPiece = null
-                        val checkBy = checkForCheck(tempBoard, true)
-                        if(listOf(checkedPlayer, -1).contains(checkBy) && validMove) {
-//                            Log.d("Prevent checkmate:", "${tempBoardPieceOne?.player} with ${tempBoardPieceOne?.shortenedName} from ${tempBoardTileOne.tileName} to ${tempBoardTileTwo?.tileName}")
-                            checkmate = false
-                        }
-//                        else if(validMove){
-//                            Log.d(TAG, "${tempBoardPieceOne?.player} with ${tempBoardPieceOne?.shortenedName} from ${tempBoardTileOne.tileName} to ${tempBoardTileTwo?.tileName}, check by player $checkByPlayer, checked player: $checkedPlayer")
-//                        }
-//                    }
-
+                    tempBoardPieceOne?.posX = tempTiles!!.xCoord
+                    tempBoardPieceOne?.posY = tempTiles.yCoord
+                    tempBoard.tiles[tempTiles.xCoord + (tempTiles.yCoord * 8)]!!.chessPiece = tempBoardPieceOne
+                    tempBoard.tiles[tempTiles.xCoord + (tempTiles.yCoord * 8)]!!.isEmpty = false
+                    tempBoard.tiles[t.xCoord + t.yCoord*8]!!.isEmpty = true
+                    tempBoard.tiles[t.xCoord + t.yCoord*8]!!.chessPiece = null
+                    val checkBy = checkForCheck(tempBoard, true)
+                    if(listOf(checkedPlayer, -1).contains(checkBy) && validMove) {
+                        checkmate = false
+                    }
 
                 }
 
@@ -809,26 +759,10 @@ class GameViewActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-//        binding.loadlatestbtn.setOnClickListener {
-//            thread {
-//                val items = localDatabase.BoardDataDAO().getAll()
-//                if(items.isEmpty()) {
-//                    return@thread
-//                }
-//                board.constructBoardFromString(items.last().state)
-//                currentPlayer = items.last().nextPlayer
-//                runOnUiThread {
-//                    drawBoard()
-//                }
-//            }
-//        }
-
         binding.fabBack.setOnClickListener {
             revert()
         }
         binding.resetbtn.setOnClickListener {
-//            board.constructBoardFromString("000000000000000000000000000000000000000000000000000q00000PPPPP00")
-//            drawBoard()
             resetBoard()
         }
     }
@@ -979,11 +913,6 @@ class GameViewActivity : AppCompatActivity() {
 
     //Restores the board one move before current state
     fun revert(){
-//        for(b in buttons){
-//            b.rotation = 180F
-//        }
-//        return
-
         val size = backup.size
         if(size == 0){
             Snackbar.make(binding.root, "Not available!", Snackbar.ANIMATION_MODE_SLIDE).show()
@@ -1035,11 +964,9 @@ class GameViewActivity : AppCompatActivity() {
         //Long castling
         else if(message.contains("O-O-O ")){
             val lastStepString = steps.last().substring(steps.last().length-2)
-//            var tile = Tile(0,0)
 
             for(t in board.tiles){
                 if(t?.tileName == lastStepString){
-//                    tile = t.copy()
                     Log.d(TAG, "Castling on $lastStepString")
                     manageCastling(t)
                 }
@@ -1064,17 +991,7 @@ class GameViewActivity : AppCompatActivity() {
         val currentTileCol: Int = (inCharacters[3] - 'a')
         val currentTileRow: Int = inCharacters[4].digitToInt() - 1
 
-//        var opponentNumber = -1
-//        if(whitePlayer == username){
-//            opponentNumber = 1
-//        } else if(whitePlayer == opponent){
-//            opponentNumber == 0
-//        }
-//
-//
-//        if(oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.player != opponentNumber){
-//            return oldBoard
-//        }
+
         val oldFirstX = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.firstPosX
         val oldFirstY = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.firstPosY
         val oldPiece = oldBoard.tiles[prevTileCol + prevTileRow*8]?.chessPiece?.copy()
@@ -1108,15 +1025,6 @@ class GameViewActivity : AppCompatActivity() {
         else if(inCharacters[0] == 'B'){
             piece = Bishop(currentTileCol, currentTileRow, player)
         }
-
-
-//        piece!!.firstPosX = oldPiece!!.firstPosX
-//        piece.firstPosY = oldPiece.firstPosY
-
-
-
-//        piece!!.firstPosX = oldFirstX!!
-//        piece.firstPosY = oldFirstY!!
 
 
         if (oldFirstX != null) {
@@ -1156,8 +1064,12 @@ class GameViewActivity : AppCompatActivity() {
         if(saved) return
         val boardState = board.toString()
 
+        var playerColor = 0
+
+        if(flippedBoard) playerColor = 1
+
         val save = BoardData(state=boardState,
-            nextPlayer = currentPlayer,
+            nextPlayer = playerColor,
             multiplayer = multiplayer,
             opponent = opponent,
             date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"))
@@ -1166,7 +1078,6 @@ class GameViewActivity : AppCompatActivity() {
         thread{
             val insertId = localDatabase.BoardDataDAO().insert(save)
             save.id = insertId
-//            lastId = insertId.toInt()
             saved = true
         }
     }

@@ -24,4 +24,5 @@
     <string name="bitmap_of_the_saved_board">Bitmap of the saved board</string>
     <string name="msg_token_fmt" />
     <string name="return_to_main_menu">Return to main menu</string>
+    <string name="or_enter_opponent_name">Or enter opponent name</string>
 </resources>

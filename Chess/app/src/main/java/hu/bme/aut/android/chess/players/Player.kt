@@ -1,7 +1,7 @@
 package hu.bme.aut.android.chess.players
 
-import hu.bme.aut.android.chess.Board.Board
-import hu.bme.aut.android.chess.Board.Pieces.ChessPiece
+import hu.bme.aut.android.chess.board.Board
+import hu.bme.aut.android.chess.board.pieces.ChessPiece
 
 open class Player(var board: Board, var playerNumber: Int, var timeLeftInMillis: Int) {
     var pieces = ArrayList<ChessPiece>()

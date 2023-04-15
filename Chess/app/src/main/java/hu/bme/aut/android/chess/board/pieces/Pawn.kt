@@ -1,5 +1,7 @@
 package hu.bme.aut.android.chess.board.pieces
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import hu.bme.aut.android.chess.board.Board
 import hu.bme.aut.android.chess.board.Tile
 import kotlin.math.abs
@@ -8,11 +10,16 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
     override var shortenedName: String = "P"
     override var canPathBeBlocked = false
     override var stepCount = 0
+    var enPassant = false
+    var dir = determineDirection()
 
     override fun step(tile: Tile?, board: Board) {
         if(isAlive && tile != null){
             if(checkIfValidMove(tile,board)){
                 stepCount++
+                if(stepCount == 1){
+                    enPassant = true
+                }
                 posX = tile.xCoord
                 posY = tile.yCoord
                 if(tile.isEmpty){
@@ -27,6 +34,21 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         if(tile.chessPiece?.player == this.player || tile.chessPiece is King){
             return false
         }
+
+
+        if(tile.yCoord == posY+dir){
+            if(abs(posX - tile.xCoord) == 1 && posY == firstPosY + 3*dir){
+//                Log.d("asd", checkForEnPassant(tile, board.tiles[tile.yCoord*8-dir + tile.xCoord]?.chessPiece).toString())
+                Log.d(TAG, "Checking En Passant on target tile (${tile.xCoord},${tile.yCoord}) ")
+                Log.d(TAG, "Current position is ($posX, $posY)")
+                Log.d(TAG, "Target piece ${board.tiles[(tile.yCoord-dir)*8 + tile.xCoord]?.chessPiece} at (${tile.xCoord}, $${tile.yCoord-dir})")
+                Log.d(TAG, "Target piece player ${board.tiles[(tile.yCoord-dir)*8 + tile.xCoord]?.chessPiece?.player}, current player: $player")
+                if(checkForEnPassant(tile, board.tiles[(tile.yCoord-dir)*8 + tile.xCoord]?.chessPiece)){
+                    return true
+                }
+            }
+        }
+
         val xNew = tile.xCoord
         val yNew = tile.yCoord
         if(posY == firstPosY){
@@ -69,6 +91,8 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
         p.canPathBeBlocked = canPathBeBlocked
         p.firstPosX = firstPosX
         p.firstPosY = firstPosY
+        p.dir = dir
+        p.enPassant = enPassant
         return p
     }
 
@@ -101,5 +125,30 @@ class Pawn(x: Int, y: Int, playerId : Int) : ChessPiece(x,y, playerId) {
             return posY == 0
         }
         return false
+    }
+
+    fun checkForEnPassant(targetTile: Tile, passantedPiece: ChessPiece?): Boolean {
+        if(passantedPiece == null || passantedPiece.player == player){
+            return false
+        }
+        Log.d("ENPASSANT", "Checking en passant on (${targetTile.xCoord}, ${targetTile.yCoord}), this: (${posX}, ${posY}), neighbor: $passantedPiece: (${passantedPiece.posX}, ${passantedPiece.posY})")
+
+        if(passantedPiece.posY == posY && passantedPiece is Pawn && passantedPiece.enPassant && targetTile.yCoord == posY+dir){
+            Log.d("ENPASSANT", "Google en passant on ${targetTile.xCoord} ${targetTile.yCoord}, this: ${posX} ${posY}, neighbor: ${passantedPiece.posX} ${passantedPiece.posY}")
+            return true
+        }
+        return false
+    }
+
+    fun determineDirection(): Int{
+        if(player == 0) return 1
+        else return -1
+    }
+
+    fun revertEnPassant(){
+        if(enPassant){
+            Log.d(TAG, "reverted enpassant")
+            enPassant = false
+        }
     }
 }

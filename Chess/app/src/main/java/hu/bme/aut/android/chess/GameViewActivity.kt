@@ -264,8 +264,10 @@ class GameViewActivity : AppCompatActivity() {
 
         val tileId = view.contentDescription.toString()
         val currentTile = board.searchForTileById(tileId)
+        var prevTileCopy: Tile? = null
         val currentPiece = currentTile?.chessPiece
         var castling = false
+        var enpassant = false
         var promote = false
         var step = false
         var prevTile: Tile? = null
@@ -284,11 +286,14 @@ class GameViewActivity : AppCompatActivity() {
             if(currentPiece?.player != currentPlayer && currentPiece != null && previouslySelectedPiece!!.player != currentPlayer){
                 previouslySelectedPiece = currentPiece
                 previouslySelectedTile = currentTile
+                prevTileCopy = previouslySelectedTile?.copy()
                 checkForCheck(board, false)
                 return
             }
             //Step
             if(previouslySelectedPiece?.player == currentPlayer){
+
+
                 if(currentTile?.let { previouslySelectedPiece!!.checkIfValidMove(it,board) } == true){
                     var playerNumber = -1
                     if(whitePlayer == username){
@@ -322,12 +327,31 @@ class GameViewActivity : AppCompatActivity() {
                             }
                             backup.add(previousBoard.copy())
                             steps.add(previouslySelectedPiece?.shortenedName +  previouslySelectedTile?.tileName + currentTile.tileName)
+
+
+
                             previouslySelectedTile?.let {
                                 board.step(it, currentTile)
                                 it.chessPiece = null
                                 currentTile.chessPiece = previouslySelectedPiece
                                 currentTile.chessPiece?.posX = currentTile.xCoord
                                 currentTile.chessPiece?.posY = currentTile.yCoord
+                                currentTile.chessPiece?.stepCount = (previouslySelectedPiece?.stepCount?.plus(
+                                    1
+                                ))!!
+
+                                if(currentTile.chessPiece is Pawn){
+                                    if((currentTile.chessPiece as Pawn).stepCount == 1 && abs((currentTile.chessPiece as Pawn).posY - (currentTile.chessPiece as Pawn).firstPosY) == 2){
+                                        (currentTile.chessPiece as Pawn).enPassant = true
+                                        Log.d("enpassant", "enpassant enalbled on ${currentTile.chessPiece?.posX}, ${currentTile.chessPiece?.posY}")
+                                    }
+                                }
+
+                                for(tile in board.tiles){
+                                    if(tile?.chessPiece is Pawn && tile.tileName != currentTile.tileName) run {
+                                        (tile.chessPiece as Pawn).revertEnPassant()
+                                    }
+                                }
                             }
                             previouslySelectedPiece!!.step(currentTile,board)
                             prevTile = previouslySelectedTile
@@ -335,6 +359,14 @@ class GameViewActivity : AppCompatActivity() {
                             if(previouslySelectedPiece is King && abs(prevTile!!.xCoord - currentTile.xCoord) > 1){
                                 castling = true
                             }
+
+                            if(previouslySelectedPiece is Pawn
+                                && board.tiles[((previouslySelectedPiece as Pawn).posY - (previouslySelectedPiece as Pawn).dir)*8 + (previouslySelectedPiece as Pawn).posX]?.chessPiece is Pawn
+                                && prevTileCopy!!.isEmpty
+                            ){
+                                enpassant = true
+                            }
+
                             if(previouslySelectedPiece is Pawn){
                                 if((previouslySelectedPiece as Pawn).checkForTradeability()){
                                     promote = true
@@ -359,6 +391,10 @@ class GameViewActivity : AppCompatActivity() {
                 latestPromote = prevPiece
                 lastStep = currentPlayer
                 createPromotionPopupWindow(prevTile)
+            } else if(enpassant){
+                val piece = previouslySelectedTile?.chessPiece
+                Log.d(TAG, "enpassant to $currentTile at (${currentTile.xCoord},${currentTile.yCoord}) from (${prevPiece?.posX},${prevPiece?.posY}) as $prevPiece")
+                manageEnPassant(currentTile, (piece as Pawn), board)
             }
 
             drawBoard()
@@ -387,6 +423,7 @@ class GameViewActivity : AppCompatActivity() {
             checkForCheck(board, false)
             checkForCheckMate(board)
             if(!multiplayer || (multiplayer && sent)) return
+
         }
 
         drawBoard()
@@ -439,6 +476,13 @@ class GameViewActivity : AppCompatActivity() {
         }
 
         drawBoard()
+    }
+
+    private fun manageEnPassant(enpassantTile: Tile, passingPiece: Pawn?, enpassantBoard: Board){
+        Log.d(TAG, "Managing en passant on (${enpassantTile.xCoord}, ${enpassantTile.yCoord}) by $passingPiece")
+        if(passingPiece == null) return
+        enpassantBoard.tiles[enpassantTile.xCoord + (enpassantTile.yCoord - passingPiece.dir)*8]?.chessPiece = null
+        enpassantBoard.tiles[enpassantTile.xCoord + (enpassantTile.yCoord - passingPiece.dir)*8]?.isEmpty = true
     }
 
 
@@ -946,11 +990,9 @@ class GameViewActivity : AppCompatActivity() {
         //Short castling
         if(message.contains("O-O ")){
             val lastStepString = message.substring(message.length-2)
-//            var tile = Tile(0,0)
 
             for(t in board.tiles){
                 if(t?.tileName == lastStepString){
-//                    tile = t.copy()
                     Log.d(TAG, "Castling on $lastStepString")
                     manageCastling(t)
                 }
@@ -1039,9 +1081,24 @@ class GameViewActivity : AppCompatActivity() {
         piece?.stepCount = oldPiece.stepCount
         piece?.canPathBeBlocked = oldPiece.canPathBeBlocked
         piece?.isAlive = oldPiece.isAlive
+        piece?.stepCount = oldPiece.stepCount + 1
+
+        if(piece is Pawn && piece.stepCount == 1){
+            piece.enPassant = true
+        }
+
+        for(tile in oldBoard.tiles){
+            if(tile?.chessPiece is Pawn && tile.tileName != oldBoard.tiles[currentTileCol + currentTileRow*8]?.tileName) run {
+                (tile.chessPiece as Pawn).revertEnPassant()
+            }
+        }
 
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.chessPiece = piece
         oldBoard.tiles[currentTileCol + currentTileRow*8]?.isEmpty = false
+
+        if(piece is Pawn && board.tiles[currentTileCol + currentTileRow*8]?.chessPiece == null && prevTileCol != currentTileCol){
+            manageEnPassant(oldBoard.tiles[currentTileCol + currentTileRow*8]!!, piece, oldBoard)
+        }
 
         changeNextPlayer()
         drawBoard()

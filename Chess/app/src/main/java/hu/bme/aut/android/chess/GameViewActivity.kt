@@ -130,6 +130,7 @@ class GameViewActivity : AppCompatActivity() {
 
 
         databaseReference.addValueEventListener(object : ValueEventListener {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (multiplayer && !ended) {
                     val map = dataSnapshot.value as Map<*, *>?
@@ -258,7 +259,7 @@ class GameViewActivity : AppCompatActivity() {
             drawBoard()
             highlightTile(view)
             checkForCheck(board, false)
-            Snackbar.make(binding.root, "CHECKMATE", Snackbar.LENGTH_LONG).show()
+//            Snackbar.make(binding.root, "CHECKMATE", Snackbar.LENGTH_LONG).show()
             return
         }
 
@@ -630,7 +631,7 @@ class GameViewActivity : AppCompatActivity() {
             return false
         }
 
-        if(checkmate){
+        if(checkmate && !replay){
             val factory = LayoutInflater.from(this)
             val gameoOverDialogView: View = factory.inflate(R.layout.dialog_gameover, null)
             val gameOverDialog: AlertDialog? = AlertDialog.Builder(this).create()
@@ -979,6 +980,7 @@ class GameViewActivity : AppCompatActivity() {
         return true
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun interpretMessage(message: String): Board{
 
         val oldBoard = board.copy()
@@ -1102,6 +1104,7 @@ class GameViewActivity : AppCompatActivity() {
 
         changeNextPlayer()
         drawBoard()
+        checkForCheckMate(oldBoard)
 
         return oldBoard
 

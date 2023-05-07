@@ -1,0 +1,37 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:title="Profile">
+
+        <EditTextPreference
+            app:key="username"
+            app:title="Username"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="Gameplay"
+        >
+
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="autoqueenpromotion"
+            app:title="Auto-Queen promotion"
+            app:summaryOn="Automatically promotes your pawn to Queen"
+            app:summaryOff="You get to choose which piece you want to promote your pawn to"
+            />
+
+
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="multiplayer"
+            app:title="Multiplayer"/>
+
+    </PreferenceCategory>
+
+    <Preference
+        app:title="Reset all data"
+        app:key="reset_data"/>
+
+
+</PreferenceScreen>

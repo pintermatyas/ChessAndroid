@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Chess</string>
+    <string name="start_game">Play offline</string>
+    <string name="your_round">YOUR ROUND!</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+
+    <!--    Game preferences-->
+    <string name="auto_queen">Automatically trade Pawn for Queen</string>
+    <string name="settings">Settings</string>
+    <string name="previous_step">Previous step</string>
+    <string name="reset_board">Reset board</string>
+    <string name="title_activity_list">ListActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="searching_for_opponents">Searching for opponents...</string>
+    <string name="back">Back</string>
+    <string name="scan_qr_code">Scan QR code</string>
+    <string name="delete_button_for_item">Delete button for item</string>
+    <string name="bitmap_of_the_saved_board">Bitmap of the saved board</string>
+    <string name="msg_token_fmt" />
+    <string name="return_to_main_menu">Return to main menu</string>
+    <string name="or_enter_opponent_name">Or enter opponent name</string>
+</resources>

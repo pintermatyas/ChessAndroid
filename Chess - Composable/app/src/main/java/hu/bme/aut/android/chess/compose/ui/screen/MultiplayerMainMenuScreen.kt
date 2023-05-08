@@ -26,12 +26,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import hu.bme.aut.android.chess.R
+import hu.bme.aut.android.chess.compose.ui.Screen
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @ExperimentalMaterial3Api
 @Composable
 fun MultiplayerMainMenuScreen(
+    navController: NavHostController
 ) {
     val context = LocalContext.current
     Scaffold(
@@ -50,8 +54,7 @@ fun MultiplayerMainMenuScreen(
 
             Button(
                 onClick = {
-
-                          //TODO start online game
+                          navController.navigate(Screen.MultiplayerSearchingScreen.route)
                 },
                 modifier = Modifier
                     .height(50.dp)
@@ -67,7 +70,9 @@ fun MultiplayerMainMenuScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* TODO */ },
+                onClick = {
+                    navController.navigate(Screen.QRCodeScreen.route)
+                          },
                 modifier = Modifier
                     .height(50.dp)
                     .width(250.dp)
@@ -87,6 +92,6 @@ fun MultiplayerMainMenuScreen(
 @Composable
 fun MultiplayerMainMenuScreenPreview() {
     MaterialTheme {
-        MultiplayerMainMenuScreen()
+        MultiplayerMainMenuScreen(rememberNavController())
     }
 }

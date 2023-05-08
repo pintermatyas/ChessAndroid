@@ -10,7 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.preference.PreferenceManager
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import hu.bme.aut.android.chess.compose.ui.screen.MainMenuScreen
+import hu.bme.aut.android.chess.compose.ui.MyApp
 import hu.bme.aut.android.chess.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -32,8 +32,16 @@ class MainActivity : AppCompatActivity() {
 //        binding = ActivityMainBinding.inflate(layoutInflater)
 //        binding.root.setBackgroundResource(R.drawable.background)
 
+        database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+        message = database.reference
+
         setContent {
-            MainMenuScreen()
+            username = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "").toString()
+            MyApp(
+                database = database,
+                username = PreferenceManager.getDefaultSharedPreferences(this).getString("username", "").toString()
+            )
+//            QRCodeReaderScreen(database, username)
         }
 
 //        setContentView(binding.root)
@@ -71,8 +79,6 @@ class MainActivity : AppCompatActivity() {
 //
 //
 //        //firebase teszt
-        database = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
-        message = database.reference
 //
         if (ActivityCompat.checkSelfPermission(
                 applicationContext,

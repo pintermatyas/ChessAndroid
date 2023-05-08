@@ -31,15 +31,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import hu.bme.aut.android.chess.GameViewActivity
 import hu.bme.aut.android.chess.ListActivity
 import hu.bme.aut.android.chess.R
+import hu.bme.aut.android.chess.compose.ui.Screen
 import hu.bme.aut.android.chess.preferences.SettingsActivity
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @ExperimentalMaterial3Api
 @Composable
 fun MainMenuScreen(
+    navController: NavHostController
 ) {
     val context = LocalContext.current
     Scaffold(
@@ -48,12 +52,13 @@ fun MainMenuScreen(
                 onClick = {
                     val intent = Intent(context, SettingsActivity::class.java).apply {  }
                     context.startActivity(intent)
-                }
+                },
+                containerColor = Color.Green
             ) {
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "Settings",
-                    tint = Color.White
+                    tint = Color.Black
                 )
             }
         }
@@ -90,7 +95,9 @@ fun MainMenuScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* TODO */ },
+                onClick = {
+                    navController.navigate(Screen.MultiplayerMainMenuScreen.route)
+                          },
                 modifier = Modifier
                     .height(50.dp)
                     .width(200.dp)
@@ -128,6 +135,6 @@ fun MainMenuScreen(
 @Composable
 fun MainMenuScreenPreview() {
     MaterialTheme {
-        MainMenuScreen()
+        MainMenuScreen(rememberNavController())
     }
 }

@@ -50,9 +50,9 @@ fun QRCodeScreen(
     navController: NavHostController
 ) {
     val context = LocalContext.current
-    var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
-    var message = database?.reference
-    var onlinePlayers = ArrayList<String>()
+    val database: FirebaseDatabase = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+    val message = database.reference
+    val onlinePlayers = ArrayList<String>()
     var opponent = ""
     var log = ArrayList<String>()
     var logSize = 0
@@ -115,109 +115,76 @@ fun QRCodeScreen(
 
 
 
-    message!!.addValueEventListener(object : ValueEventListener {
+    message.addValueEventListener(object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
-            if(searching || (friendMatch && !searching)){
-
+            if(friendMatch){
                 val map = dataSnapshot.value as Map<*, *>?
                 onlinePlayers.clear()
                 opponent = ""
-
                 val oldLog = log
-
-
-
-
                 log = java.util.ArrayList<String>()
-
                 log = map!!["log"] as ArrayList<String>
                 logSize = log.size
-
                 if(oldLog == log && log.last().toString() == "entered" && !friendMatch) return
-
                 updateOnlinePlayers(map)
-
                 if(log.last().toString().contains(username) && !connected && oldLog != log){
-                    message!!.child("games").child(log.last().toString()).child(username).setValue("entered")
+                    message.child("games").child(log.last().toString()).child(username).setValue("entered")
                 }
-
                 var existingGame = false
-
                 var game: String = log.last().toString()
-
-
                 Log.d("GAME STATUS", game)
-
                 if(game == "entered" && !friendMatch){
                     updateOnlinePlayers(map)
                     log = map["log"] as ArrayList<String>
                     logSize = log.size
                     createPairing(map)
                 }
-
                 val games: java.util.HashMap<*, *> = map["games"] as java.util.HashMap<*, *>
                 val gameKeys = games.keys
                 var friendlyGame = ""
-
                 for(k in gameKeys){
                     if(k.toString().contains(username)){
                         existingGame = true
-
                         friendlyGame = k.toString()
                     }
                 }
-
-
                 if(friendMatch && existingGame){
                     game = friendlyGame
-
-                    message!!.child("games").child(game).child(username).setValue("entered")
+                    message.child("games").child(game).child(username).setValue("entered")
                     val intent = Intent(context, GameViewActivity::class.java).apply {  }
                     intent.putExtra("multiplayer", true)
-
-                    var players = friendlyGame.split(",")
+                    val players = friendlyGame.split(",")
                     Log.d("TAG","$username,     $game")
                     if(games[game] == null) {
                         Log.d("GAME IS NULL", "$username; $game")
                         return
                     }
-
                     if(games[game] !is java.util.HashMap<*, *>) return
-
                     val match = games[game] as java.util.HashMap<*, *>
-
                     opponent = if(players[0]==username) players[1] else players[0]
-
                     if(match["white"].toString()!=username && match["black"].toString() != username){
-                        message!!.child("games").child(game).child("white").setValue("")
-                        message!!.child("games").child(game).child("black").setValue("")
+                        message.child("games").child(game).child("white").setValue("")
+                        message.child("games").child(game).child("black").setValue("")
                     }
-
                     intent.putExtra("opponent", opponent)
                     intent.putExtra("match", game)
-                    message!!.child("players").child(username).setValue("unavailable")
+                    message.child("players").child(username).setValue("unavailable")
                     context.startActivity(intent)
                     (context as Activity).finish()
                     searching = false
                     friendMatch = false
                     return
-
                 } else {
                     game = log.last().toString()
                 }
-
-                log = map["log"] as java.util.ArrayList<String>
+                log = map["log"] as ArrayList<String>
                 logSize = log.size
-
                 Log.d("Connection status", "EXISTING: $existingGame, CONNECTED: ${connected}, ONLINE PLAYERS: $onlinePlayers")
-
                 if((existingGame && !connected && game != "entered") || (existingGame && friendMatch) ){
-
                     Log.d("entered", "$username entered")
-                    message!!.child("games").child(game).child(username).setValue("entered")
+                    message.child("games").child(game).child(username).setValue("entered")
                     val intent = Intent(context, GameViewActivity::class.java).apply {  }
                     intent.putExtra("multiplayer", true)
-
                     var players = log.last().toString().split(",")
                     if(friendMatch) players = friendlyGame.split(",")
                     Log.d("TAG","$username,     $game")
@@ -225,35 +192,27 @@ fun QRCodeScreen(
                         Log.d("GAME IS NULL", "$username; $game")
                         return
                     }
-
                     if(games[game] !is java.util.HashMap<*, *>) return
-
                     val match = games[game] as java.util.HashMap<*, *>
-
                     opponent = if(players[0]==username) players[1] else players[0]
-
                     if(match["white"].toString()!=username && match["black"].toString() != username){
-                        message!!.child("games").child(game).child("white").setValue("")
-                        message!!.child("games").child(game).child("black").setValue("")
+                        message.child("games").child(game).child("white").setValue("")
+                        message.child("games").child(game).child("black").setValue("")
                     }
                     intent.putExtra("opponent", opponent)
                     intent.putExtra("match", game)
-                    message!!.child("players").child(username).setValue("unavailable")
+                    message.child("players").child(username).setValue("unavailable")
                     context.startActivity(intent)
                     (context as Activity).finish()
                     searching = false
-
                     connected = true
                     return
                 }
-
                 else if(!logged && !(game.contains(",$username") || (game.contains("$username,")))){
                     log = map["log"] as ArrayList<String>
                     logSize = log.size
                     Log.d("LOGGING STATUS", "NOT LOGGED, NO GAME")
-
                     updateOnlinePlayers(map)
-
                     createPairing(map)
                 }
             }
@@ -265,22 +224,17 @@ fun QRCodeScreen(
             Log.d("PAIRING", "CREATING PAIRING")
             opponent = ""
             updateOnlinePlayers(map)
-
             if(onlinePlayers.size==0){
                 Log.d("NO ONLINE PLAYERS", "0 ONLINE PLAYERS")
                 return ""
             }
-
             val size = onlinePlayers.size
             val rand = (0 until size).random()
             opponent = onlinePlayers[rand]
-
             Log.d("ONLINE PLAYERS AT $logSize", "$onlinePlayers")
             if(opponent == username) return ""
-
-
             Log.d("MATCH LOGGED AT $logSize", "$opponent,$username")
-            message!!.child("log").child(logSize.toString()).setValue("$opponent,$username")
+            message.child("log").child(logSize.toString()).setValue("$opponent,$username")
             logged = true
             Log.d("OPPONENT FOR PLAYER $username", opponent)
             return opponent
@@ -319,8 +273,8 @@ fun QRCodeScreen(
 fun QRCodeScreenPreview() {
     MaterialTheme {
         QRCodeScreen(
-            "asd",
-            getQrCodeBitmap("asd"),
+            "username",
+            getQrCodeBitmap("username"),
             rememberNavController()
             )
     }

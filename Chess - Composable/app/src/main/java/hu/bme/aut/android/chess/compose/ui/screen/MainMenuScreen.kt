@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import hu.bme.aut.android.chess.GameViewActivity
-import hu.bme.aut.android.chess.ListActivity
 import hu.bme.aut.android.chess.R
 import hu.bme.aut.android.chess.compose.ui.Screen
 import hu.bme.aut.android.chess.preferences.SettingsActivity
@@ -79,6 +78,7 @@ fun MainMenuScreen(
                 onClick = {
                     val intent = Intent(context, GameViewActivity::class.java).apply {  }
                     intent.putExtra("multiplayer", false)
+                    intent.putExtra("replay", false)
                     context.startActivity(intent)
                           },
                 modifier = Modifier
@@ -113,8 +113,7 @@ fun MainMenuScreen(
 
             Button(
                 onClick = {
-                    val intent = Intent(context, ListActivity::class.java).apply {  }
-                    context.startActivity(intent)
+                    navController.navigate(Screen.ListScreen.route)
                           },
                 modifier = Modifier
                     .height(50.dp)

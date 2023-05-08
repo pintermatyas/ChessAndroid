@@ -6,4 +6,5 @@ sealed class Screen(val route: String) {
     object MultiplayerSearchingScreen: Screen("multiplayer_searching")
     object QRCodeScreen: Screen("qr_code")
     object QRCodeReaderScreen: Screen("qr_code_reader")
+    object ListScreen: Screen("list_screen")
 }

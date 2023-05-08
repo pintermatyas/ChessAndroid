@@ -43,6 +43,7 @@ fun MultiplayerSearchingScreen(
     val context = LocalContext.current
     var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
     var message = database?.reference
+    message!!.child("players").child(username).setValue("online")
     var onlinePlayers = ArrayList<String>()
     var opponent = ""
     var log = ArrayList<String>()
@@ -50,7 +51,6 @@ fun MultiplayerSearchingScreen(
     var logged = false
     var connected = false
     var searching = true
-    message!!.child("players").child(username).setValue("online")
     var friendMatch = false
 
     Scaffold(
@@ -77,45 +77,31 @@ fun MultiplayerSearchingScreen(
 
     message.addValueEventListener(object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
-            if(searching || (friendMatch && !searching)){
-
+            if(searching){
                 val map = dataSnapshot.value as Map<*, *>?
                 onlinePlayers.clear()
                 opponent = ""
-
                 val oldLog = log
-
                 log = java.util.ArrayList<String>()
-
                 log = map!!["log"] as ArrayList<String>
                 logSize = log.size
-
                 if(oldLog == log && log.last().toString() == "entered" && !friendMatch) return
-
                 updateOnlinePlayers(map)
-
                 if(log.last().toString().contains(username) && !connected && oldLog != log){
-                    message!!.child("games").child(log.last().toString()).child(username).setValue("entered")
+                    message.child("games").child(log.last().toString()).child(username).setValue("entered")
                 }
-
                 var existingGame = false
-
-                var game: String = log.last().toString()
-
-
+                val game: String = log.last().toString()
                 Log.d("GAME STATUS", game)
-
                 if(game == "entered" && !friendMatch){
                     updateOnlinePlayers(map)
                     log = map["log"] as ArrayList<String>
                     logSize = log.size
                     createPairing(map)
                 }
-
                 val games: HashMap<*, *> = map["games"] as HashMap<*, *>
                 val gameKeys = games.keys
                 var friendlyGame = ""
-
                 for(k in gameKeys){
                     if(k.toString().contains(username)){
                         existingGame = true
@@ -123,54 +109,12 @@ fun MultiplayerSearchingScreen(
                         friendlyGame = k.toString()
                     }
                 }
-
-
-//                if(friendMatch && existingGame){
-//                    game = friendlyGame
-//
-//                    message!!.child("games").child(game).child(username).setValue("entered")
-//                    val intent = Intent(context, GameViewActivity::class.java).apply {  }
-//                    intent.putExtra("multiplayer", true)
-//
-//                    var players = friendlyGame.split(",")
-//                    Log.d("TAG","$username,     $game")
-//                    if(games[game] == null) {
-//                        Log.d("GAME IS NULL", "$username; $game")
-//                        return
-//                    }
-//
-//                    if(games[game] !is HashMap<*, *>) return
-//
-//                    val match = games[game] as HashMap<*, *>
-//
-//                    opponent = if(players[0]==username) players[1] else players[0]
-//
-//                    if(match["white"].toString()!=username && match["black"].toString() != username){
-//                        message!!.child("games").child(game).child("white").setValue("")
-//                        message!!.child("games").child(game).child("black").setValue("")
-//                    }
-//
-//                    intent.putExtra("opponent", opponent)
-//                    intent.putExtra("match", game)
-//                    message!!.child("players").child(username).setValue("unavailable")
-//                    context.startActivity(intent)
-//                    searching = false
-//                    friendMatch = false
-//                    return
-//
-//                } else {
-//                    game = log.last().toString()
-//                }
-
                 log = map["log"] as ArrayList<String>
                 logSize = log.size
-
                 Log.d("Connection status", "EXISTING: $existingGame, CONNECTED: ${connected}, ONLINE PLAYERS: $onlinePlayers")
-
                 if((existingGame && !connected && game != "entered") || (existingGame && friendMatch) ){
-
                     Log.d("entered", "$username entered")
-                    message!!.child("games").child(game).child(username).setValue("entered")
+                    message.child("games").child(game).child(username).setValue("entered")
                     val intent = Intent(context, GameViewActivity::class.java).apply {  }
                     intent.putExtra("multiplayer", true)
 
@@ -181,30 +125,22 @@ fun MultiplayerSearchingScreen(
                         Log.d("GAME IS NULL", "$username; $game")
                         return
                     }
-
                     if(games[game] !is HashMap<*, *>) return
-
                     val match = games[game] as HashMap<*, *>
-
                     opponent = if(players[0]==username) players[1] else players[0]
-
                     if(match["white"].toString()!=username && match["black"].toString() != username){
-                        message!!.child("games").child(game).child("white").setValue("")
-                        message!!.child("games").child(game).child("black").setValue("")
+                        message.child("games").child(game).child("white").setValue("")
+                        message.child("games").child(game).child("black").setValue("")
                     }
                     intent.putExtra("opponent", opponent)
                     intent.putExtra("match", game)
-                    message!!.child("players").child(username).setValue("unavailable")
-
+                    message.child("players").child(username).setValue("unavailable")
                     context.startActivity(intent)
-
                     (context as Activity).finish()
                     searching = false
-
                     connected = true
                     return
                 }
-
                 else if(!logged && !(game.contains(",$username") || (game.contains("$username,")))){
                     log = map["log"] as ArrayList<String>
                     logSize = log.size
@@ -238,7 +174,7 @@ fun MultiplayerSearchingScreen(
 
 
             Log.d("MATCH LOGGED AT $logSize", "$opponent,$username")
-            message!!.child("log").child(logSize.toString()).setValue("$opponent,$username")
+            message.child("log").child(logSize.toString()).setValue("$opponent,$username")
             logged = true
             Log.d("OPPONENT FOR PLAYER $username", opponent)
             return opponent

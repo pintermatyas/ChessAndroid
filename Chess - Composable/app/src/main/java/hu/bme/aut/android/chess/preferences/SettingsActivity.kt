@@ -5,8 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.snackbar.Snackbar
+import hu.bme.aut.android.chess.Chess.Companion.repository
 import hu.bme.aut.android.chess.R
-import hu.bme.aut.android.chess.data.GameDatabase
 import kotlin.concurrent.thread
 
 
@@ -27,11 +27,8 @@ class SettingsActivity : AppCompatActivity() {
 
     class SettingsFragment : PreferenceFragmentCompat() {
 
-        private lateinit var localDatabase: GameDatabase
-
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
-            localDatabase = GameDatabase.getDatabase(requireContext())
             val resetBtn = preferenceManager.findPreference<Preference>("reset_data")
             resetBtn?.setOnPreferenceClickListener {
                 reset()
@@ -40,7 +37,7 @@ class SettingsActivity : AppCompatActivity() {
 
         private fun reset(): Boolean {
             thread {
-                localDatabase.BoardDataDAO().nukeTable()
+                repository.getAllGames()
             }
             Snackbar.make(requireView(), "Reset successful", Snackbar.LENGTH_SHORT).show()
             return true

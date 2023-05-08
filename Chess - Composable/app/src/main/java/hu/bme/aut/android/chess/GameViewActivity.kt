@@ -19,17 +19,21 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.*
+import hu.bme.aut.android.chess.Chess.Companion.repository
 import hu.bme.aut.android.chess.board.Board
 import hu.bme.aut.android.chess.board.Tile
 import hu.bme.aut.android.chess.board.pieces.*
-import hu.bme.aut.android.chess.data.BoardData
-import hu.bme.aut.android.chess.data.GameDatabase
+import hu.bme.aut.android.chess.compose.ui.common.CommonButton
+import hu.bme.aut.android.chess.data.BoardEntity
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
 import hu.bme.aut.android.chess.preferences.SettingsActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.math.abs
 
 
@@ -69,7 +73,6 @@ class GameViewActivity : AppCompatActivity() {
     private lateinit var databaseReference: DatabaseReference
     private var username: String = ""
 
-    private lateinit var localDatabase: GameDatabase
     private var saved = false
 
     private var replay = false
@@ -81,6 +84,14 @@ class GameViewActivity : AppCompatActivity() {
         binding = ActivityGameViewBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
+        binding.resetbtn.setContent {
+            CommonButton(
+                click = {
+                    resetBoard()
+                },
+                text = "Reset Board"
+            )
+        }
         var init = true
 
         board = Board()
@@ -89,6 +100,9 @@ class GameViewActivity : AppCompatActivity() {
         val intentExtras = intent.extras!!
 
         if(intentExtras.getBoolean("replay")){
+            for(b in buttons){
+                b.isClickable = false
+            }
             replay = true
             board.constructBoardFromString(intentExtras.getString("state")!!)
             if(intentExtras.getInt("nextPlayer") == 1){
@@ -104,7 +118,6 @@ class GameViewActivity : AppCompatActivity() {
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this)
 
-        localDatabase = GameDatabase.getDatabase(this)
 
 
         firebaseDatabase = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
@@ -230,7 +243,9 @@ class GameViewActivity : AppCompatActivity() {
 
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
-        finish()
+        if(!replay){
+            finish()
+        }
     }
 
     @SuppressLint("NewApi")
@@ -243,7 +258,9 @@ class GameViewActivity : AppCompatActivity() {
         }
 
         if(!multiplayer && !replay && !saved && checkForCheckMate(board)){
-            saveBoard()
+            Log.d(TAG, "Game ended")
+            saveBoard(board)
+            Log.d(TAG, "Saved on line 262")
         }
         ended = true
     }
@@ -262,7 +279,6 @@ class GameViewActivity : AppCompatActivity() {
             drawBoard()
             highlightTile(view)
             checkForCheck(board, false)
-//            Snackbar.make(binding.root, "CHECKMATE", Snackbar.LENGTH_LONG).show()
             return
         }
 
@@ -296,7 +312,6 @@ class GameViewActivity : AppCompatActivity() {
             }
             //Step
             if(previouslySelectedPiece?.player == currentPlayer){
-
 
                 if(currentTile?.let { previouslySelectedPiece!!.checkIfValidMove(it,board) } == true){
                     var playerNumber = -1
@@ -653,7 +668,8 @@ class GameViewActivity : AppCompatActivity() {
                 startActivity(intent)
             }
             gameOverDialog!!.show()
-            saveBoard()
+            saveBoard(b)
+            Log.d(TAG, "Saved on line 671")
         }
 
         return checkmate
@@ -810,9 +826,6 @@ class GameViewActivity : AppCompatActivity() {
         binding.fabBack.setOnClickListener {
             revert()
         }
-        binding.resetbtn.setOnClickListener {
-            resetBoard()
-        }
     }
 
     @SuppressLint("PrivateResource")
@@ -963,7 +976,7 @@ class GameViewActivity : AppCompatActivity() {
     fun revert(){
         val size = backup.size
         if(size == 0){
-            Snackbar.make(binding.root, "Not available!", Snackbar.ANIMATION_MODE_SLIDE).show()
+            Snackbar.make(binding.root, "Not available!", Snackbar.LENGTH_LONG).show()
             return
         }
         board = backup.removeAt(size-1).copy()
@@ -1123,25 +1136,40 @@ class GameViewActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun saveBoard(){
+    fun saveBoard(boardToBeSaved: Board){
         if(saved) return
-        val boardState = board.toString()
+        val boardState = boardToBeSaved.toString()
 
         var playerColor = 0
 
         if(flippedBoard) playerColor = 1
 
-        val save = BoardData(state=boardState,
+        if(!multiplayer){
+            opponent = ""
+        }
+
+        val save = BoardEntity(
+            state=boardState,
             nextPlayer = playerColor,
             multiplayer = multiplayer,
             opponent = opponent,
             date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"))
         )
 
-        thread{
-            val insertId = localDatabase.BoardDataDAO().insert(save)
-            save.id = insertId
-            saved = true
+        Log.d(TAG, repository.getAllGames().toString())
+        saveBoard(save)
+        Log.d(TAG, repository.getAllGames().toString())
+        saved = true
+    }
+
+    private fun saveBoard(boardEntity: BoardEntity) = runBlocking {
+        Log.d(TAG, "Saving game $boardEntity")
+        launch(Dispatchers.IO) {
+            withContext(Dispatchers.Default) {
+                // Perform blocking I/O or CPU-bound operations here
+                repository.insertGame(boardEntity)
+                Log.d(TAG, "Saved game $boardEntity")
+            }
         }
     }
 }

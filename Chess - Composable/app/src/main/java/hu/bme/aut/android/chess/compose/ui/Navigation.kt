@@ -6,8 +6,8 @@ import androidx.compose.material.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.*
-import com.google.firebase.database.FirebaseDatabase
 import hu.bme.aut.android.chess.compose.ui.common.getQrCodeBitmap
+import hu.bme.aut.android.chess.compose.ui.screen.ListScreen
 import hu.bme.aut.android.chess.compose.ui.screen.MainMenuScreen
 import hu.bme.aut.android.chess.compose.ui.screen.MultiplayerMainMenuScreen
 import hu.bme.aut.android.chess.compose.ui.screen.MultiplayerSearchingScreen
@@ -17,8 +17,7 @@ import hu.bme.aut.android.chess.compose.ui.screen.QRCodeScreen
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MyApp(
-    database: FirebaseDatabase,
+fun Navigation(
     username: String
 ) {
     val navController = rememberNavController()
@@ -27,7 +26,7 @@ fun MyApp(
                 MainMenuScreen(navController)
             }
             composable(Screen.MultiplayerMainMenuScreen.route) {
-                MultiplayerMainMenuScreen(navController)
+                MultiplayerMainMenuScreen(username,navController)
             }
             composable(Screen.MultiplayerSearchingScreen.route) {
                 MultiplayerSearchingScreen(
@@ -47,6 +46,9 @@ fun MyApp(
                     username,
                     navController
                 )
+            }
+            composable(Screen.ListScreen.route) {
+                ListScreen()
             }
     }
 }

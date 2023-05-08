@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 
 @Entity(tableName = "boarddata")
-data class BoardData(
+data class BoardEntity(
     @ColumnInfo(name="id") @PrimaryKey(autoGenerate = true) var id: Long? = null,
     @ColumnInfo(name="state") var state: String,
     @ColumnInfo(name="nextPlayer") var nextPlayer: Int,

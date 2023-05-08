@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.database.FirebaseDatabase
 import hu.bme.aut.android.chess.R
 import hu.bme.aut.android.chess.compose.ui.Screen
 
@@ -35,9 +36,15 @@ import hu.bme.aut.android.chess.compose.ui.Screen
 @ExperimentalMaterial3Api
 @Composable
 fun MultiplayerMainMenuScreen(
+    username: String,
     navController: NavHostController
 ) {
     val context = LocalContext.current
+
+    var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+    var message = database?.reference
+    message!!.child("players").child(username).setValue("offline")
+
     Scaffold(
     ) {
         Image(painterResource(id = R.drawable.background),
@@ -92,6 +99,6 @@ fun MultiplayerMainMenuScreen(
 @Composable
 fun MultiplayerMainMenuScreenPreview() {
     MaterialTheme {
-        MultiplayerMainMenuScreen(rememberNavController())
+        MultiplayerMainMenuScreen("username", rememberNavController())
     }
 }

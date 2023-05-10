@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import hu.bme.aut.android.chess.GameViewActivity
 import hu.bme.aut.android.chess.R
+import hu.bme.aut.android.chess.compose.ui.common.getBoardBitmap
 import hu.bme.aut.android.chess.data.BoardEntity
 import hu.bme.aut.android.chess.domain.model.asBoardEntity
 import hu.bme.aut.android.chess.feature.list.GamesViewModel

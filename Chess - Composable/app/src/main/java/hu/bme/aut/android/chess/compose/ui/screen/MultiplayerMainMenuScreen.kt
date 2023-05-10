@@ -41,8 +41,8 @@ fun MultiplayerMainMenuScreen(
 ) {
     val context = LocalContext.current
 
-    var database: FirebaseDatabase? = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
-    var message = database?.reference
+    val database: FirebaseDatabase = FirebaseDatabase.getInstance("https://chessapp-ea53e-default-rtdb.europe-west1.firebasedatabase.app/")
+    val message = database?.reference
     message!!.child("players").child(username).setValue("offline")
 
     Scaffold(

@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,11 +59,11 @@ fun QRCodeScreen(
     var logSize = 0
     var logged = false
     var connected = false
-    var searching = false
     var friendMatch = true
 
-    Scaffold(
-    ) {
+    val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+
+    Scaffold {
         Image(painterResource(id = R.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
@@ -99,6 +100,7 @@ fun QRCodeScreen(
 
             Button(
                 onClick = {
+                          onBackPressedDispatcher?.onBackPressed()
                           },
                 modifier = Modifier
                     .height(50.dp)
@@ -171,7 +173,6 @@ fun QRCodeScreen(
                     message.child("players").child(username).setValue("unavailable")
                     context.startActivity(intent)
                     (context as Activity).finish()
-                    searching = false
                     friendMatch = false
                     return
                 } else {
@@ -204,7 +205,6 @@ fun QRCodeScreen(
                     message.child("players").child(username).setValue("unavailable")
                     context.startActivity(intent)
                     (context as Activity).finish()
-                    searching = false
                     connected = true
                     return
                 }

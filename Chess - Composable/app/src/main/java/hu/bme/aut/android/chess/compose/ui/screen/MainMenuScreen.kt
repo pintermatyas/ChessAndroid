@@ -2,6 +2,7 @@ package hu.bme.aut.android.chess.compose.ui.screen
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.preference.PreferenceManager
 import hu.bme.aut.android.chess.GameViewActivity
 import hu.bme.aut.android.chess.R
 import hu.bme.aut.android.chess.compose.ui.Screen
@@ -96,7 +98,12 @@ fun MainMenuScreen(
 
             Button(
                 onClick = {
-                    navController.navigate(Screen.MultiplayerMainMenuScreen.route)
+                    if(PreferenceManager.getDefaultSharedPreferences(context).getString("username", "").toString() != ""){
+                        navController.navigate(Screen.MultiplayerMainMenuScreen.route)
+                    }
+                    else{
+                        Toast.makeText(context, "You need to set a username first!", Toast.LENGTH_LONG).show()
+                    }
                           },
                 modifier = Modifier
                     .height(50.dp)

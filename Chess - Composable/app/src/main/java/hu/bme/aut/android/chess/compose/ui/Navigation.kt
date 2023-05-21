@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.*
 import hu.bme.aut.android.chess.compose.ui.common.getQrCodeBitmap
 import hu.bme.aut.android.chess.compose.ui.screen.ListScreen
@@ -20,6 +21,7 @@ import hu.bme.aut.android.chess.compose.ui.screen.QRCodeScreen
 fun Navigation(
     username: String
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.MainMenuScreen.route) {
             composable(Screen.MainMenuScreen.route) {

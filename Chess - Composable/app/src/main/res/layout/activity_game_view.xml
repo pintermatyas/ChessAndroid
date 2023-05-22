@@ -782,20 +782,6 @@
             android:layout_marginBottom="16dp"
             android:textColor="@color/black" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/settingsbtn"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/lime"
-            app:tint="@android:color/black"
-            android:contentDescription="@string/settings"
-            android:src="@drawable/ic_settings"/>
 
     </RelativeLayout>
 

@@ -26,7 +26,6 @@ import hu.bme.aut.android.chess.board.pieces.*
 import hu.bme.aut.android.chess.compose.ui.common.CommonButton
 import hu.bme.aut.android.chess.data.BoardEntity
 import hu.bme.aut.android.chess.databinding.ActivityGameViewBinding
-import hu.bme.aut.android.chess.preferences.SettingsActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -134,7 +133,6 @@ class GameViewActivity : AppCompatActivity() {
             } else {
                 binding.player2indicator.isVisible = false
             }
-            binding.settingsbtn.isVisible = false
         } else{
             binding.fabBack.isVisible = true
             binding.resetbtn.isVisible = true
@@ -816,11 +814,6 @@ class GameViewActivity : AppCompatActivity() {
                     onTileClick(it)
                 }
             }
-        }
-
-        binding.settingsbtn.setOnClickListener {
-            val intent = Intent(this@GameViewActivity, SettingsActivity::class.java).apply {  }
-            startActivity(intent)
         }
 
         binding.fabBack.setOnClickListener {

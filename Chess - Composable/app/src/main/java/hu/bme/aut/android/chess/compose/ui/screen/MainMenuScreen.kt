@@ -38,6 +38,7 @@ import androidx.preference.PreferenceManager
 import hu.bme.aut.android.chess.GameViewActivity
 import hu.bme.aut.android.chess.R
 import hu.bme.aut.android.chess.compose.ui.Screen
+import hu.bme.aut.android.chess.isOnline
 import hu.bme.aut.android.chess.preferences.SettingsActivity
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -98,11 +99,15 @@ fun MainMenuScreen(
 
             Button(
                 onClick = {
-                    if(PreferenceManager.getDefaultSharedPreferences(context).getString("username", "").toString() != ""){
+                    val networkAccess = context.isOnline()
+                    if(PreferenceManager.getDefaultSharedPreferences(context).getString("username", "").toString() != "" && networkAccess){
                         navController.navigate(Screen.MultiplayerMainMenuScreen.route)
                     }
-                    else{
+                    else if(networkAccess){
                         Toast.makeText(context, "You need to set a username first!", Toast.LENGTH_LONG).show()
+                    }
+                    else{
+                        Toast.makeText(context, "You are not connected to the Internet!", Toast.LENGTH_LONG).show()
                     }
                           },
                 modifier = Modifier

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "698252756315",
+    "project_id": "chessapp-ea53e",
+    "storage_bucket": "chessapp-ea53e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698252756315:android:2dc89789daec4e623cc67e",
+        "android_client_info": {
+          "package_name": "com.pintermatyas.android.chess"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "698252756315-7l4pflvgo4fg4a24upkuh9552nj0mt8h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoeydepGl4qiPqE8LAdk9M81nJ1HRuO4U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "698252756315-7l4pflvgo4fg4a24upkuh9552nj0mt8h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
